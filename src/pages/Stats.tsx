@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { getAllExpenses } from '../db';
 import { getMonthStart, getMonthEnd, getMonthLabel, formatAmount, getCurrentYear, getCurrentMonth, getToday } from '../utils/format';
-import { EXPENSE_ICONS, type Expense } from '../types';
+import { type Expense } from '../types';
+import { EXPENSE_ICONS, OtherIcon } from '../components/Icon';
 import { useDataRefresh } from '../hooks/useData';
 import { generateMonthlyReview, getCachedReview, setCachedReview, hasApiKey } from '../utils/ai';
 
@@ -80,6 +81,11 @@ export function Stats() {
       pct: expenseTotal > 0 ? Math.round((total / expenseTotal) * 1000) / 10 : 0,
     }));
     const topDayEntry = dailyData.reduce((best, d) => d.total > best.total ? d : best, dailyData[0] || { date: '', total: 0 });
+    const topItems = monthExpenses
+      .filter((e) => (e.type || 'expense') === 'expense')
+      .sort((a, b) => b.amount - a.amount)
+      .slice(0, 5)
+      .map((e) => ({ date: e.date, description: e.description || e.category, amount: e.amount, category: e.category }));
     return {
       year,
       month,
@@ -89,6 +95,7 @@ export function Stats() {
       categoryBreakdown,
       dailyAvg: dailyData.length > 0 ? expenseTotal / dailyData.length : 0,
       topDay: topDayEntry.total > 0 ? { date: `${month}月${topDayEntry.date}`, total: topDayEntry.total } : null,
+      topItems,
     };
   }, [year, month, expenseTotal, incomeTotal, monthExpenses.length, sortedCategories, dailyData]);
 
@@ -143,7 +150,8 @@ export function Stats() {
 
   function formatYTick(v: number): string {
     if (v === 0) return '0';
-    return `${(v / 1000).toFixed(1)}k`;
+    if (v >= 1000) return `${(v / 1000).toFixed(1)}k`;
+    return String(Math.round(v));
   }
 
   // Auto-scroll to today on mount/month change
@@ -216,7 +224,7 @@ export function Stats() {
     <div>
       {/* Month Navigator */}
       <div className="flex items-center justify-between mb-4">
-        <button onClick={goPrevMonth} className="text-gray-400 hover:text-white text-xl px-2">&lt;</button>
+        <button onClick={goPrevMonth} className="text-[var(--color-text-muted)] hover:text-[var(--color-text)] text-xl px-2">&lt;</button>
         <select
           value={`${year}-${String(month).padStart(2, '0')}`}
           onChange={(e) => {
@@ -227,16 +235,16 @@ export function Stats() {
           className="bg-transparent text-lg font-bold text-center appearance-none cursor-pointer outline-none"
         >
           {availableMonths.map((ym) => (
-            <option key={ym} value={ym} className="bg-gray-900">
+            <option key={ym} value={ym} className="bg-[var(--color-surface)]">
               {(() => { const [y, m] = ym.split('-'); return getMonthLabel(parseInt(y), parseInt(m)); })()}
             </option>
           ))}
         </select>
-        <button onClick={goNextMonth} className="text-gray-400 hover:text-white text-xl px-2">&gt;</button>
+        <button onClick={goNextMonth} className="text-[var(--color-text-muted)] hover:text-[var(--color-text)] text-xl px-2">&gt;</button>
       </div>
 
       {/* Month Total */}
-      <div className="bg-gradient-to-br from-purple-600 to-pink-700 rounded-2xl p-5 mb-5 shadow-lg">
+      <div className="bg-gradient-to-br from-purple-600 to-pink-700 rounded-2xl p-5 mb-5 shadow-lg animate-fade-in-up">
         <div className="flex justify-between items-end">
           <div>
             <div className="text-purple-200 text-sm mb-1">本月支出</div>
@@ -260,20 +268,20 @@ export function Stats() {
       </div>
 
       {monthExpenses.length === 0 ? (
-        <div className="text-center text-gray-600 py-10">
+        <div className="text-center text-[var(--color-text-faint)] py-10">
           {getMonthLabel(year, month)}暂无消费数据
         </div>
       ) : (
         <>
           {/* Daily Trend Bars */}
-          <div className="bg-gray-900 rounded-2xl px-2 py-5 mb-4">
-            <h2 className="text-sm font-medium text-gray-400 mb-4 px-3">每日趋势</h2>
+          <div className="bg-[var(--color-surface)] rounded-2xl px-2 py-5 mb-4 animate-fade-in-up">
+            <h2 className="text-sm font-medium text-[var(--color-text-muted)] mb-4 px-3">每日趋势</h2>
             <div className="flex items-stretch gap-0 select-none" style={{ height: '180px' }}>
               {/* Left arrow */}
               <button
                 type="button"
                 onClick={() => scrollChart('left')}
-                className="flex items-center justify-center w-4 shrink-0 text-gray-600 hover:text-gray-300 active:text-cyan-400 transition-colors"
+                className="flex items-center justify-center w-4 shrink-0 text-[var(--color-text-faint)] hover:text-[var(--color-text)] active:text-cyan-400 transition-colors"
               >
                 <span className="text-4xl">＜</span>
               </button>
@@ -282,7 +290,7 @@ export function Stats() {
                 {yScale.ticks.slice().reverse().map((v) => (
                   <span
                     key={v}
-                    className="absolute right-0 text-[10px] text-gray-500 leading-none whitespace-nowrap"
+                    className="absolute right-0 text-[10px] text-[var(--color-text-muted)] leading-none whitespace-nowrap"
                     style={{
                       bottom: `${Math.min(179, 18 + (v / yScale.niceMax) * 162)}px`,
                       transform: 'translateY(50%)',
@@ -318,14 +326,14 @@ export function Stats() {
                               style={{ bottom: '18px', height: `${barH}px` }}
                             />
                             <span
-                              className="absolute left-0 right-0 text-center text-gray-400 whitespace-nowrap"
+                              className="absolute left-0 right-0 text-center text-[var(--color-text-muted)] whitespace-nowrap"
                               style={{ bottom: `${18 + barH + 2}px`, fontSize: `${labelSize}px` }}
                             >
                               {barLabel}
                             </span>
                           </>
                         )}
-                        <span className={`absolute left-0 right-0 text-center text-[10px] whitespace-nowrap ${isToday ? 'text-cyan-400 font-medium' : 'text-gray-600'}`} style={{ bottom: 0 }}>{date}</span>
+                        <span className={`absolute left-0 right-0 text-center text-[10px] whitespace-nowrap ${isToday ? 'text-cyan-400 font-medium' : 'text-[var(--color-text-faint)]'}`} style={{ bottom: 0 }}>{date}</span>
                       </div>
                       );
                     })}
@@ -350,7 +358,7 @@ export function Stats() {
               <button
                 type="button"
                 onClick={() => scrollChart('right')}
-                className="flex items-center justify-center w-4 shrink-0 text-gray-600 hover:text-gray-300 active:text-cyan-400 transition-colors"
+                className="flex items-center justify-center w-4 shrink-0 text-[var(--color-text-faint)] hover:text-[var(--color-text)] active:text-cyan-400 transition-colors"
               >
                 <span className="text-4xl">＞</span>
               </button>
@@ -358,18 +366,18 @@ export function Stats() {
           </div>
 
           {/* Category Breakdown */}
-          <div className="bg-gray-900 rounded-2xl p-5 mb-4">
-            <h2 className="text-sm font-medium text-gray-400 mb-4">分类排行</h2>
+          <div className="bg-[var(--color-surface)] rounded-2xl p-5 mb-4 animate-fade-in-up">
+            <h2 className="text-sm font-medium text-[var(--color-text-muted)] mb-4">分类排行</h2>
             <div className="space-y-3">
               {sortedCategories.map(([cat, total]) => (
                 <div key={cat}>
                   <div className="flex justify-between text-sm mb-1">
-                    <span>{EXPENSE_ICONS[cat] || '📦'} {cat}</span>
-                    <span className="text-gray-400">
+                    <span className="inline-flex items-center gap-1.5 text-[var(--color-icon)]">{(() => { const CI = EXPENSE_ICONS[cat] || OtherIcon; return <CI size={18} />; })()} {cat}</span>
+                    <span className="text-[var(--color-text-muted)]">
                       {formatAmount(total)} · {((total / expenseTotal) * 100).toFixed(1)}%
                     </span>
                   </div>
-                  <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
+                  <div className="h-2 bg-[var(--color-surface-alt)] rounded-full overflow-hidden">
                     <div
                       className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all"
                       style={{ width: `${(total / maxTotal) * 100}%` }}
@@ -382,26 +390,26 @@ export function Stats() {
 
           {/* AI Monthly Review */}
           {expenseTotal > 0 && (
-            <div className="bg-gray-900 rounded-2xl p-5">
+            <div className="bg-[var(--color-surface)] rounded-2xl p-5 animate-fade-in-up">
               <div className="flex items-center justify-between mb-3">
-                <h2 className="text-sm font-medium text-gray-400">🤖 AI 月度复盘</h2>
+                <h2 className="text-sm font-medium text-[var(--color-text-muted)]">💬 月度复盘</h2>
                 {aiReview && hasApiKey() && (
                   <button
                     onClick={handleGenerateReview}
                     disabled={aiLoading}
-                    className="text-xs text-gray-600 hover:text-cyan-400 transition-colors"
+                    className="text-xs text-[var(--color-text-faint)] hover:text-cyan-400 transition-colors"
                   >
-                    🔄 重新分析
+                    🔄 再次复盘
                   </button>
                 )}
               </div>
 
               {aiReview ? (
-                <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-line">{aiReview}</p>
+                <p className="text-sm text-[var(--color-text)] leading-relaxed whitespace-pre-line">{aiReview}</p>
               ) : aiLoading ? (
-                <div className="flex items-center gap-2 text-sm text-gray-500 py-4">
+                <div className="flex items-center gap-2 text-sm text-[var(--color-text-muted)] py-4">
                   <span className="animate-pulse">🤖</span>
-                  AI 正在分析你的消费数据...
+                  正在帮你盘点这个月...
                 </div>
               ) : aiError ? (
                 <div>
@@ -414,7 +422,7 @@ export function Stats() {
                   </button>
                 </div>
               ) : !hasApiKey() ? (
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-[var(--color-text-muted)]">
                   请先在「设置」页配置 DeepSeek API Key，<br />
                   注册地址：platform.deepseek.com
                 </p>
@@ -423,7 +431,7 @@ export function Stats() {
                   onClick={handleGenerateReview}
                   className="w-full py-3 rounded-xl text-sm font-medium bg-purple-600/20 text-purple-400 hover:bg-purple-600/30 active:bg-purple-600/40 transition-colors"
                 >
-                  ✨ 让 AI 分析本月消费
+                  📊 生成本月复盘
                 </button>
               )}
             </div>

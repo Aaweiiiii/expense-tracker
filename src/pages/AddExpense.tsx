@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { addExpense, updateExpense, getBigPurchases, db } from '../db';
 import { getToday } from '../utils/format';
-import { EXPENSE_CATEGORIES, EXPENSE_ICONS, INCOME_CATEGORIES, INCOME_ICONS } from '../types';
+import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../types';
+import { EXPENSE_ICONS, INCOME_ICONS } from '../components/Icon';
 import { useDataRefresh } from '../hooks/useData';
 import { DatePicker } from '../components/DatePicker';
 import { LifespanPicker } from '../components/LifespanPicker';
@@ -21,7 +22,6 @@ export function AddExpense() {
   const [date, setDate] = useState(getToday());
   const [saving, setSaving] = useState(false);
   const [isBigPurchase, setIsBigPurchase] = useState(false);
-  const [purchaseDate, setPurchaseDate] = useState(getToday());
   const [lifespanYears, setLifespanYears] = useState(0);
   const [lifespanMonths, setLifespanMonths] = useState(0);
 
@@ -51,7 +51,6 @@ export function AddExpense() {
       setDate(expense.date);
       if (expense.isBigPurchase) {
         setIsBigPurchase(true);
-        setPurchaseDate(expense.purchaseDate || expense.date);
         const y = Math.floor(expense.lifespanYears || 0);
         const m = Math.round(((expense.lifespanYears || 0) - y) * 12);
         setLifespanYears(y);
@@ -84,7 +83,6 @@ export function AddExpense() {
         description: desc,
         date,
         isBigPurchase: recordType === 'expense' && isBigPurchase,
-        purchaseDate: (recordType === 'expense' && isBigPurchase) ? purchaseDate : undefined,
         lifespanYears: (recordType === 'expense' && isBigPurchase)
           ? (lifespanYears + lifespanMonths / 12)
           : undefined,
@@ -131,12 +129,12 @@ export function AddExpense() {
 
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Type Toggle */}
-        <div className="bg-gray-900 rounded-xl p-1 flex">
+        <div className="bg-[var(--color-surface)] rounded-xl p-1 flex">
           <button
             type="button"
             onClick={() => setRecordType('expense')}
             className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
-              isExpense ? 'bg-cyan-600 text-white' : 'text-gray-400 hover:text-gray-200'
+              isExpense ? 'bg-cyan-600 text-white' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
             }`}
           >
             支出
@@ -145,7 +143,7 @@ export function AddExpense() {
             type="button"
             onClick={() => setRecordType('income')}
             className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
-              !isExpense ? 'bg-green-600 text-white' : 'text-gray-400 hover:text-gray-200'
+              !isExpense ? 'bg-green-600 text-white' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
             }`}
           >
             收入
@@ -154,8 +152,8 @@ export function AddExpense() {
 
         {/* Amount */}
         <div>
-          <label className="text-sm text-gray-400 block mb-2">金额</label>
-          <div className="bg-gray-900 rounded-xl px-4 py-3 flex items-center gap-2">
+          <label className="text-sm text-[var(--color-text-muted)] block mb-2">金额</label>
+          <div className="bg-[var(--color-surface)] rounded-xl px-4 py-3 flex items-center gap-2">
             <span className={`font-bold text-xl ${isExpense ? 'text-cyan-400' : 'text-green-400'}`}>¥</span>
             <input
               type="number"
@@ -164,8 +162,7 @@ export function AddExpense() {
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="0.00"
-              className="flex-1 bg-transparent text-2xl font-bold outline-none placeholder-gray-700"
-              autoFocus
+              className="flex-1 bg-transparent text-2xl font-bold outline-none placeholder-[var(--color-text-faint)]"
               required
             />
           </div>
@@ -175,7 +172,7 @@ export function AddExpense() {
                 key={n}
                 type="button"
                 onClick={() => setAmount(String(n))}
-                className="bg-gray-900 text-gray-400 px-3 py-1 rounded-lg text-sm active:bg-gray-800"
+                className="bg-[var(--color-surface)] text-[var(--color-text-muted)] px-3 py-1 rounded-lg text-sm active:bg-[var(--color-surface-alt)] transition-all duration-200 active:scale-[0.97]"
               >
                 ¥{n}
               </button>
@@ -185,7 +182,7 @@ export function AddExpense() {
 
         {/* Category */}
         <div>
-          <label className="text-sm text-gray-400 block mb-2">分类</label>
+          <label className="text-sm text-[var(--color-text-muted)] block mb-2">分类</label>
           <div className={`grid gap-2 ${categories.length <= 5 ? 'grid-cols-5' : 'grid-cols-5'}`}>
             {categories.map((cat) => (
               <button
@@ -197,10 +194,10 @@ export function AddExpense() {
                     ? isExpense
                       ? 'bg-cyan-600/20 text-cyan-400 ring-1 ring-cyan-600/50'
                       : 'bg-green-600/20 text-green-400 ring-1 ring-green-600/50'
-                    : 'bg-gray-900 text-gray-400 hover:bg-gray-800'
+                    : 'bg-[var(--color-surface)] text-[var(--color-text-muted)] hover:bg-[var(--color-surface-alt)]'
                 }`}
               >
-                <span className="text-lg">{icons[cat]}</span>
+                {(() => { const CI = icons[cat]; return <CI size={20} />; })()}
                 <span>{cat}</span>
               </button>
             ))}
@@ -209,37 +206,37 @@ export function AddExpense() {
 
         {/* Description */}
         <div>
-          <label className="text-sm text-gray-400 block mb-2">描述（可选）</label>
+          <label className="text-sm text-[var(--color-text-muted)] block mb-2">描述（可选）</label>
           <input
             type="text"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder={isExpense ? '例如：中午牛肉面' : '例如：5月工资'}
-            className="w-full bg-gray-900 rounded-xl px-4 py-3 text-sm outline-none placeholder-gray-700 focus:ring-1 focus:ring-cyan-600"
+            className="w-full bg-[var(--color-surface)] rounded-xl px-4 py-3 text-sm outline-none placeholder-[var(--color-text-faint)] focus:ring-1 focus:ring-cyan-600"
           />
         </div>
 
         {/* Date */}
         <div>
-          <label className="text-sm text-gray-400 block mb-2">日期</label>
-          <div className="bg-gray-900 rounded-xl p-4">
+          <label className="text-sm text-[var(--color-text-muted)] block mb-2">日期</label>
+          <div className="bg-[var(--color-surface)] rounded-xl p-4">
             <DatePicker value={date} onChange={setDate} />
           </div>
         </div>
 
         {/* Big Purchase Toggle — expense only */}
         {isExpense && (
-          <div className="bg-gray-900 rounded-xl p-4">
+          <div className="bg-[var(--color-surface)] rounded-xl p-4">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-sm font-medium">标记为长期消费</div>
-                <div className="text-xs text-gray-500 mt-0.5">手机、课程、家电等长期使用的消费</div>
+                <div className="text-sm font-medium">标记为资产消费</div>
+                <div className="text-xs text-[var(--color-text-muted)] mt-0.5">手机、课程、家电等长期使用的资产</div>
               </div>
               <button
                 type="button"
                 onClick={() => setIsBigPurchase(!isBigPurchase)}
                 className={`relative w-12 h-7 rounded-full transition-colors ${
-                  isBigPurchase ? 'bg-cyan-600' : 'bg-gray-700'
+                  isBigPurchase ? 'bg-cyan-600' : 'bg-[var(--color-surface-alt)]'
                 }`}
               >
                 <div
@@ -251,21 +248,15 @@ export function AddExpense() {
             </div>
 
             {isBigPurchase && (
-              <div className="mt-4 pt-4 border-t border-gray-800 space-y-4">
-                <div>
-                  <label className="text-sm text-gray-400 block mb-2">购买日期</label>
-                  <DatePicker value={purchaseDate} onChange={setPurchaseDate} />
-                </div>
-                <div>
-                  <label className="text-sm text-gray-400 block mb-3">预计使用时间</label>
-                  <LifespanPicker
-                    years={lifespanYears}
-                    months={lifespanMonths}
-                    onYearsChange={setLifespanYears}
-                    onMonthsChange={setLifespanMonths}
-                  />
-                  <p className="text-xs text-gray-600 mt-2">例如手机填 3 年，网课填 0 年 3 月</p>
-                </div>
+              <div className="mt-4 pt-4 border-t border-[var(--color-border)]">
+                <label className="text-sm text-[var(--color-text-muted)] block mb-3">预计使用时间</label>
+                <LifespanPicker
+                  years={lifespanYears}
+                  months={lifespanMonths}
+                  onYearsChange={setLifespanYears}
+                  onMonthsChange={setLifespanMonths}
+                />
+                <p className="text-xs text-[var(--color-text-faint)] mt-2">例如手机填 3 年，网课填 0 年 3 月</p>
               </div>
             )}
           </div>

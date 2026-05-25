@@ -1,8 +1,10 @@
-import { useRef, useState, useEffect } from 'react';
-import { getAllExpenses, addExpense, db } from '../db';
+import { useRef, useState, useEffect, useCallback } from 'react';
+import { getAllExpenses, addExpense, updateExpense, db } from '../db';
 import type { Expense } from '../types';
 import { useDataRefresh } from '../hooks/useData';
+import { useTheme } from '../hooks/useTheme';
 import { hasApiKey, saveApiKey } from '../utils/ai';
+import { syncExpenses, hasToken, setToken, clearToken } from '../utils/cloud';
 
 export function Settings() {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -11,10 +13,45 @@ export function Settings() {
   const [apiKey, setApiKey] = useState('');
   const [keySaved, setKeySaved] = useState(false);
   const [showKey, setShowKey] = useState(false);
+  const [syncReady, setSyncReady] = useState(hasToken());
+  const [syncing, setSyncing] = useState(false);
+  const [syncMsg, setSyncMsg] = useState('');
+  const [ghToken, setGhToken] = useState('');
+  const [showGhToken, setShowGhToken] = useState(false);
+  const { theme, toggle: toggleTheme } = useTheme();
 
   useEffect(() => {
     setKeySaved(hasApiKey());
   }, []);
+
+  const handleSync = useCallback(async () => {
+    setSyncing(true);
+    setSyncMsg('同步中...');
+    try {
+      const locals = await getAllExpenses();
+      const result = await syncExpenses(
+        locals,
+        async (expense, cloudId) => {
+          if (expense.id) await updateExpense(expense.id, { cloudId } as Partial<Expense>);
+        },
+        async (expense) => {
+          await addExpense({ ...expense, isBigPurchase: expense.isBigPurchase || false });
+        },
+      );
+      const parts: string[] = [];
+      parts.push(`本地 ${locals.length} 条`);
+      if (result.uploaded > 0) parts.push(`上传 ${result.uploaded} 条`);
+      if (result.downloaded > 0) parts.push(`下载 ${result.downloaded} 条`);
+      if (result.uploaded === 0 && result.downloaded === 0) parts.push('已同步');
+      setSyncMsg(parts.join(' · '));
+      refresh();
+    } catch (e: any) {
+      const msg = e?.message || e?.toString() || '未知错误';
+      setSyncMsg(`同步失败：${msg}`);
+    } finally {
+      setSyncing(false);
+    }
+  }, [refresh]);
 
   function handleSaveKey() {
     const trimmed = apiKey.trim();
@@ -31,6 +68,20 @@ export function Settings() {
     if (!confirm('确定要清除已保存的 API Key 吗？')) return;
     localStorage.removeItem('deepseek_api_key');
     setKeySaved(false);
+  }
+
+  function handleSaveGhToken() {
+    const trimmed = ghToken.trim();
+    if (!trimmed) { alert('请输入 Token'); return; }
+    setToken(trimmed);
+    setGhToken('');
+    setSyncReady(true);
+  }
+
+  function handleClearGhToken() {
+    if (!confirm('确定要清除同步配置吗？')) return;
+    clearToken();
+    setSyncReady(false);
   }
 
   async function handleDeleteAll() {
@@ -93,27 +144,89 @@ export function Settings() {
       <h1 className="text-xl font-bold mb-5">设置</h1>
 
       <div className="space-y-3">
+        {/* Theme Toggle */}
+        <div className="bg-[var(--color-surface)] rounded-2xl p-4">
+          <div className="flex items-center gap-4">
+            <span className="text-2xl">{theme === 'light' ? '☀️' : '🌙'}</span>
+            <div className="flex-1">
+              <div className="font-medium text-sm">
+                {theme === 'light' ? '浅色模式' : '深色模式'}
+              </div>
+              <div className="text-xs text-[var(--color-text-muted)] mt-0.5">
+                点击切换界面主题
+              </div>
+            </div>
+            <button
+              onClick={toggleTheme}
+              className={`relative w-12 h-7 rounded-full transition-colors ${
+                theme === 'dark' ? 'bg-cyan-600' : 'bg-[var(--color-border)]'
+              }`}
+            >
+              <div
+                className={`absolute top-0.5 w-6 h-6 bg-white rounded-full shadow transition-transform ${
+                  theme === 'dark' ? 'translate-x-[22px]' : 'translate-x-0.5'
+                }`}
+              />
+            </button>
+          </div>
+        </div>
+
+        {/* Nickname */}
+        <div className="bg-[var(--color-surface)] rounded-2xl p-4">
+          <div className="flex items-center gap-4 mb-3">
+            <span className="text-2xl">👤</span>
+            <div>
+              <div className="font-medium text-sm">昵称</div>
+              <div className="text-xs text-[var(--color-text-muted)] mt-0.5">
+                用于首页个性化问候
+              </div>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              defaultValue={localStorage.getItem('nickname') || ''}
+              placeholder="给自己取个名字吧"
+              id="nickname-input"
+              className="flex-1 bg-[var(--color-surface-alt)] rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-cyan-600 placeholder-[var(--color-text-faint)]"
+            />
+            <button
+              onClick={() => {
+                const input = document.getElementById('nickname-input') as HTMLInputElement;
+                const val = input.value.trim();
+                if (val) {
+                  localStorage.setItem('nickname', val);
+                  alert('昵称已保存');
+                }
+              }}
+              className="bg-cyan-600 text-white px-4 py-2 rounded-lg text-sm font-medium active:bg-cyan-700 shrink-0"
+            >
+              保存
+            </button>
+          </div>
+        </div>
+
         {/* Export */}
         <button
           onClick={handleExport}
-          className="w-full bg-gray-900 rounded-2xl p-4 text-left flex items-center gap-4 active:bg-gray-800"
+          className="w-full bg-[var(--color-surface)] rounded-2xl p-4 text-left flex items-center gap-4 active:bg-[var(--color-surface-alt)] transition-all duration-200 active:scale-[0.99]"
         >
           <span className="text-2xl">📤</span>
           <div>
             <div className="font-medium text-sm">导出数据</div>
-            <div className="text-xs text-gray-500">将所有消费记录导出为 JSON 文件</div>
+            <div className="text-xs text-[var(--color-text-muted)]">将所有消费记录导出为 JSON 文件</div>
           </div>
         </button>
 
         {/* Import */}
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="w-full bg-gray-900 rounded-2xl p-4 text-left flex items-center gap-4 active:bg-gray-800"
+          className="w-full bg-[var(--color-surface)] rounded-2xl p-4 text-left flex items-center gap-4 active:bg-[var(--color-surface-alt)] transition-all duration-200 active:scale-[0.99]"
         >
           <span className="text-2xl">📥</span>
           <div>
             <div className="font-medium text-sm">导入数据</div>
-            <div className="text-xs text-gray-500">从 JSON 文件恢复消费记录</div>
+            <div className="text-xs text-[var(--color-text-muted)]">从 JSON 文件恢复消费记录</div>
           </div>
         </button>
         <input
@@ -125,12 +238,12 @@ export function Settings() {
         />
 
         {/* DeepSeek API Key */}
-        <div className="bg-gray-900 rounded-2xl p-4">
+        <div className="bg-[var(--color-surface)] rounded-2xl p-4">
           <div className="flex items-center gap-4 mb-3">
             <span className="text-2xl">🤖</span>
             <div>
               <div className="font-medium text-sm">DeepSeek API Key</div>
-              <div className="text-xs text-gray-500 mt-0.5">
+              <div className="text-xs text-[var(--color-text-muted)] mt-0.5">
                 {keySaved ? '已配置 · 用于 AI 月度复盘功能' : '用于 AI 月度复盘功能，去 platform.deepseek.com 注册获取'}
               </div>
             </div>
@@ -149,12 +262,12 @@ export function Settings() {
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
                 placeholder="粘贴 API Key..."
-                className="flex-1 bg-gray-800 rounded-lg px-3 py-2 text-sm outline-none placeholder-gray-600 focus:ring-1 focus:ring-cyan-600"
+                className="flex-1 bg-[var(--color-surface-alt)] rounded-lg px-3 py-2 text-sm outline-none placeholder-[var(--color-text-faint)] focus:ring-1 focus:ring-cyan-600"
               />
               <button
                 type="button"
                 onClick={() => setShowKey(!showKey)}
-                className="text-xs text-gray-600 hover:text-gray-400 px-2"
+                className="text-xs text-[var(--color-text-faint)] hover:text-[var(--color-text-muted)] px-2"
               >
                 {showKey ? '隐藏' : '显示'}
               </button>
@@ -168,18 +281,67 @@ export function Settings() {
           )}
         </div>
 
-        {/* Data info */}
-        <div className="bg-gray-900 rounded-2xl p-4">
-          <div className="flex items-center gap-4">
-            <span className="text-2xl">🔒</span>
+        {/* Cloud Sync via GitHub Gist */}
+        <div className="bg-[var(--color-surface)] rounded-2xl p-4">
+          <div className="flex items-center gap-4 mb-3">
+            <span className="text-2xl">☁️</span>
             <div>
-              <div className="font-medium text-sm">数据存储说明</div>
-              <div className="text-xs text-gray-500 mt-1">
-                当前数据存储在浏览器本地。换手机前请先导出备份，在新手机上导入即可恢复。
-                后续将支持云端自动同步。
+              <div className="font-medium text-sm">云端同步</div>
+              <div className="text-xs text-[var(--color-text-muted)] mt-0.5">
+                {syncReady
+                  ? '已配置 · 数据通过 GitHub Gist 同步'
+                  : '手机电脑间同步数据，需要 GitHub Token'}
               </div>
             </div>
           </div>
+          {syncReady ? (
+            <>
+              <button
+                onClick={handleSync}
+                disabled={syncing}
+                className="w-full py-2.5 rounded-xl text-sm font-medium bg-cyan-600/20 text-cyan-400 hover:bg-cyan-600/30 active:bg-cyan-600/40 disabled:opacity-50 transition-colors"
+              >
+                {syncing ? '⏳ 同步中...' : '🔄 立即同步'}
+              </button>
+              {syncMsg && (
+                <div className="text-xs text-[var(--color-text-muted)] mt-2 text-center">{syncMsg}</div>
+              )}
+              <button
+                onClick={handleClearGhToken}
+                className="text-xs text-red-400 hover:text-red-300 mt-3 transition-colors"
+              >
+                清除配置
+              </button>
+            </>
+          ) : (
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <input
+                  type={showGhToken ? 'text' : 'password'}
+                  value={ghToken}
+                  onChange={(e) => setGhToken(e.target.value)}
+                  placeholder="粘贴 GitHub Token..."
+                  className="flex-1 bg-[var(--color-surface-alt)] rounded-lg px-3 py-2 text-sm outline-none placeholder-[var(--color-text-faint)] focus:ring-1 focus:ring-cyan-600"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowGhToken(!showGhToken)}
+                  className="text-xs text-[var(--color-text-faint)] hover:text-[var(--color-text-muted)] px-2"
+                >
+                  {showGhToken ? '隐藏' : '显示'}
+                </button>
+                <button
+                  onClick={handleSaveGhToken}
+                  className="bg-cyan-600 text-white px-4 py-2 rounded-lg text-sm font-medium active:bg-cyan-700 shrink-0"
+                >
+                  保存
+                </button>
+              </div>
+              <p className="text-[10px] text-[var(--color-text-faint)] leading-relaxed">
+                去 github.com/settings/tokens → Generate new token (classic) → 勾选 gist → 生成后粘贴到此处
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Delete All Data */}
@@ -191,12 +353,12 @@ export function Settings() {
           <span className="text-2xl">🗑️</span>
           <div>
             <div className="font-medium text-sm text-red-400">删除所有数据</div>
-            <div className="text-xs text-gray-500 mt-0.5">清空所有消费记录，不可恢复</div>
+            <div className="text-xs text-[var(--color-text-muted)] mt-0.5">清空所有消费记录，不可恢复</div>
           </div>
         </button>
 
-        <div className="text-center text-xs text-gray-700 pt-4">
-          消费记录 v0.1 · 数据仅保存在本地浏览器
+        <div className="text-center text-xs text-[var(--color-text-faint)] pt-4">
+          消费记录 v0.2 · 支持云端同步
         </div>
       </div>
     </div>

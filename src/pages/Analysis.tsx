@@ -2,8 +2,8 @@ import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getBigPurchases, updateExpense } from '../db';
 import { formatAmount, formatLifespan, getToday } from '../utils/format';
-import { CATEGORY_ICONS } from '../types';
-import type { Expense, Category } from '../types';
+import type { Expense } from '../types';
+import { EXPENSE_ICONS, OtherIcon } from '../components/Icon';
 import { useDataRefresh } from '../hooks/useData';
 import {
   BarChart,
@@ -25,8 +25,8 @@ function calendarAdd(purchase: Date, lifespanYears: number): Date {
 }
 
 function calcDailyCost(e: Expense) {
-  if (!e.purchaseDate) return null;
-  const purchase = new Date(e.purchaseDate + 'T00:00:00');
+  if (!e.date) return null;
+  const purchase = new Date(e.date + 'T00:00:00');
   const today = new Date();
   const isEnded = !!e.endDate;
   const endPoint = isEnded ? new Date(e.endDate! + 'T00:00:00') : today;
@@ -63,7 +63,7 @@ type MergedRecord = {
   count: number;
   combinedExpectedDaily: number;
   combinedActualDaily: number;
-  minPurchaseDate: string;
+  minDate: string;
   maxEndDate: string | null;
   isEnded: boolean;
   allHaveLifespan: boolean;
@@ -98,7 +98,7 @@ function mergeRecords(items: EnrichedItem[]): { singles: EnrichedItem[]; groups:
     const totalLifespanDays = groupItems.reduce((s, i) => s + i.cost.lifespanDays, 0);
     const combinedExpectedDaily = totalAmount / totalLifespanDays;
     const combinedActualDaily = totalActualDays > 0 ? totalAmount / totalActualDays : 0;
-    const dates = groupItems.map((i) => i.expense.purchaseDate || i.expense.date).sort();
+    const dates = groupItems.map((i) => i.expense.date).sort();
     const allHaveLifespan = groupItems.every((i) => i.cost.hasLifespan);
     groups.push({
       items: groupItems,
@@ -110,7 +110,7 @@ function mergeRecords(items: EnrichedItem[]): { singles: EnrichedItem[]; groups:
       count,
       combinedExpectedDaily,
       combinedActualDaily,
-      minPurchaseDate: dates[0],
+      minDate: dates[0],
       maxEndDate: groupItems.some((i) => i.cost.isEnded) ? dates[dates.length - 1] : null,
       isEnded: groupItems.every((i) => i.cost.isEnded),
       allHaveLifespan,
@@ -348,12 +348,12 @@ export function Analysis() {
   if (enriched.length === 0) {
     return (
       <div>
-        <h1 className="text-xl font-bold mb-5">长期消费分析</h1>
+        <h1 className="text-xl font-bold mb-5">资产分析</h1>
         <div className="text-center py-16">
           <div className="text-5xl mb-4">💡</div>
-          <div className="text-gray-400">还没有长期消费记录</div>
-          <p className="text-gray-600 text-xs mt-2 leading-relaxed">
-            记账时打开「标记为长期消费」开关，<br />
+          <div className="text-[var(--color-text-muted)]">还没有资产消费记录</div>
+          <p className="text-[var(--color-text-faint)] text-xs mt-2 leading-relaxed">
+            记账时打开「标记为资产消费」开关，<br />
             即可看到日均成本和趣味对比分析
           </p>
         </div>
@@ -363,21 +363,21 @@ export function Analysis() {
 
   return (
     <div>
-      <h1 className="text-xl font-bold mb-5">长期消费分析</h1>
+      <h1 className="text-xl font-bold mb-5">资产分析</h1>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 gap-3 mb-4">
-        <div className="bg-gray-900 rounded-2xl p-4">
-          <div className="text-xs text-gray-500 mb-1">长期消费总额</div>
+      <div className="grid grid-cols-2 gap-3 mb-4 stagger-children">
+        <div className="bg-[var(--color-surface)] rounded-2xl p-4">
+          <div className="text-xs text-[var(--color-text-muted)] mb-1">资产消费总额</div>
           <div className="text-xl font-bold">{formatAmount(summary.totalAmount)}</div>
-          <div className="text-xs text-gray-600 mt-1">
+          <div className="text-xs text-[var(--color-text-faint)] mt-1">
             {summary.activeCount} 件进行中{summary.count > summary.activeCount ? ` · ${summary.count - summary.activeCount} 件已结束` : ''}
           </div>
         </div>
-        <div className="bg-gray-900 rounded-2xl p-4">
-          <div className="text-xs text-gray-500 mb-1">实际日均合计</div>
+        <div className="bg-[var(--color-surface)] rounded-2xl p-4">
+          <div className="text-xs text-[var(--color-text-muted)] mb-1">实际日均合计</div>
           <div className="text-xl font-bold text-cyan-400">{formatAmount(summary.totalDaily)}</div>
-          <div className="text-xs text-gray-600 mt-1">
+          <div className="text-xs text-[var(--color-text-faint)] mt-1">
             {summary.bestValue ? `${summary.bestValue.expense.description} 日均最高` : ''}
           </div>
         </div>
@@ -385,7 +385,7 @@ export function Analysis() {
 
       {/* Sort Controls */}
       <div className="flex items-center gap-2 mb-4">
-        <span className="text-xs text-gray-500 mr-1">排序：</span>
+        <span className="text-xs text-[var(--color-text-muted)] mr-1">排序：</span>
         {([
           ['daily', '实际日均'],
           ['amount', '总价'],
@@ -397,7 +397,7 @@ export function Analysis() {
             className={`px-3 py-1.5 rounded-lg text-xs transition-colors ${
               sortBy === key
                 ? 'bg-cyan-600/20 text-cyan-400'
-                : 'bg-gray-900 text-gray-500 hover:text-gray-300'
+                : 'bg-[var(--color-surface)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
             }`}
           >
             {label}
@@ -407,8 +407,8 @@ export function Analysis() {
 
       {/* Chart */}
       {chartItems.length > 0 && (
-      <div className="bg-gray-900 rounded-2xl p-5 mb-5">
-        <h2 className="text-sm font-medium text-gray-400 mb-4">{chartTitle}</h2>
+      <div className="bg-[var(--color-surface)] rounded-2xl p-5 mb-5 animate-fade-in-up">
+        <h2 className="text-sm font-medium text-[var(--color-text-muted)] mb-4">{chartTitle}</h2>
         <ResponsiveContainer width="100%" height={Math.max(80, chartItems.length * 36 + 20)}>
           <BarChart
             data={chartItems}
@@ -451,9 +451,9 @@ export function Analysis() {
 
       {/* Active Items */}
       {activeGroups.length > 0 && (
-        <div className="mb-4">
-          <div className="text-sm font-medium text-gray-400 mb-3">进行中</div>
-          <div className="space-y-3">
+        <div className="mb-4 animate-fade-in-up">
+          <div className="text-sm font-medium text-[var(--color-text-muted)] mb-3">进行中</div>
+          <div className="space-y-3 stagger-children">
             {activeGroups.map(([cat, items]) => (
               <CategorySection
                 key={cat}
@@ -472,8 +472,8 @@ export function Analysis() {
       {/* Ended Items */}
       {endedGroups.length > 0 && (
         <div>
-          <div className="text-sm font-medium text-gray-500 mb-3">已结束</div>
-          <div className="space-y-3">
+          <div className="text-sm font-medium text-[var(--color-text-muted)] mb-3">已结束</div>
+          <div className="space-y-3 stagger-children">
             {endedGroups.map(([cat, items]) => (
               <CategorySection
                 key={cat}
@@ -520,12 +520,12 @@ function CategorySection({
     <div className={isEnded ? 'opacity-60' : ''}>
       <button
         onClick={onToggle}
-        className="w-full flex items-center gap-2 px-2 py-2 hover:bg-gray-900/50 rounded-lg transition-colors"
+        className="w-full flex items-center gap-2 px-2 py-2 hover:bg-[var(--color-surface)]/50 rounded-lg transition-colors"
       >
-        <span className="text-xs text-gray-600">{collapsed ? '▶' : '▼'}</span>
-        <span className="text-lg">{CATEGORY_ICONS[category as Category] || '📦'}</span>
+        <span className="text-xs text-[var(--color-text-faint)]">{collapsed ? '▶' : '▼'}</span>
+        <span className="text-[var(--color-icon)]">{(() => { const CI = EXPENSE_ICONS[category] || OtherIcon; return <CI size={20} />; })()}</span>
         <span className="text-sm font-medium flex-1 text-left">{category}</span>
-        <span className="text-xs text-gray-500">
+        <span className="text-xs text-[var(--color-text-muted)]">
           {items.length} 笔 · {formatAmount(catTotal)}
         </span>
       </button>
@@ -565,7 +565,7 @@ function MergedCard({
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="bg-gray-900 rounded-2xl p-4 ring-1 ring-cyan-600/30">
+    <div className="bg-[var(--color-surface)] rounded-2xl p-4 ring-1 ring-cyan-600/30">
       {/* Header - clickable */}
       <button
         onClick={() => setExpanded(!expanded)}
@@ -573,45 +573,45 @@ function MergedCard({
       >
         <div>
           <div className="font-medium text-sm flex items-center gap-2">
-            <span className="text-xs text-gray-600">{expanded ? '▼' : '▶'}</span>
+            <span className="text-xs text-[var(--color-text-faint)]">{expanded ? '▼' : '▶'}</span>
             {group.description}
             <span className="text-xs bg-cyan-600/20 text-cyan-400 px-1.5 py-0.5 rounded">
               ×{group.count}
             </span>
           </div>
-          <div className="text-xs text-gray-500 ml-5">
-            {group.category} · {group.minPurchaseDate} 起
+          <div className="text-xs text-[var(--color-text-muted)] ml-5">
+            {group.category} · {group.minDate} 起
             {group.maxEndDate && ` → ${group.maxEndDate} 止`}
-            <span className="ml-1 text-gray-600">合计 {formatAmount(group.totalAmount)}</span>
+            <span className="ml-1 text-[var(--color-text-faint)]">合计 {formatAmount(group.totalAmount)}</span>
           </div>
         </div>
       </button>
 
       {/* Summary stats */}
       <div className="grid grid-cols-3 gap-2 mb-3">
-        <div className="bg-gray-800 rounded-xl p-2.5 text-center">
-          <div className="text-xs text-gray-500 mb-0.5">已用</div>
+        <div className="bg-[var(--color-surface-alt)] rounded-xl p-2.5 text-center">
+          <div className="text-xs text-[var(--color-text-muted)] mb-0.5">已用</div>
           <div className="text-sm font-semibold">
             {group.totalActualDays > 0 ? `${group.totalActualDays} 天` : '尚未开始'}
           </div>
         </div>
-        <div className="bg-gray-800 rounded-xl p-2.5 text-center">
-          <div className="text-xs text-gray-500 mb-0.5">预计日均</div>
+        <div className="bg-[var(--color-surface-alt)] rounded-xl p-2.5 text-center">
+          <div className="text-xs text-[var(--color-text-muted)] mb-0.5">预计日均</div>
           <div className="text-sm font-semibold text-cyan-400">
             {formatAmount(group.combinedExpectedDaily)}
           </div>
         </div>
-        <div className="bg-gray-800 rounded-xl p-2.5 text-center">
-          <div className="text-xs text-gray-500 mb-0.5">实际日均</div>
+        <div className="bg-[var(--color-surface-alt)] rounded-xl p-2.5 text-center">
+          <div className="text-xs text-[var(--color-text-muted)] mb-0.5">实际日均</div>
           <div className="text-sm font-semibold">
             {group.totalActualDays > 0 ? formatAmount(group.combinedActualDaily) : '—'}
           </div>
         </div>
       </div>
 
-      <div className="bg-gray-800/50 rounded-xl p-3 space-y-1.5 text-sm">
-        <div className="text-gray-400">
-          <span className="text-gray-500 text-xs">预计日均 </span>
+      <div className="bg-[var(--color-surface-alt)]/50 rounded-xl p-3 space-y-1.5 text-sm">
+        <div className="text-[var(--color-text-muted)]">
+          <span className="text-[var(--color-text-muted)] text-xs">预计日均 </span>
           {getFunText(group.combinedExpectedDaily)}
         </div>
       </div>
@@ -624,13 +624,13 @@ function MergedCard({
 
       {/* Expanded individual items */}
       {expanded && (
-        <div className="mt-3 border-t border-gray-800 pt-3 space-y-2">
+        <div className="mt-3 border-t border-[var(--color-border)] pt-3 space-y-2">
           {group.items.map(({ expense, cost }) => (
-            <div key={expense.id} className="bg-gray-800/60 rounded-lg px-3 py-2.5">
+            <div key={expense.id} className="bg-[var(--color-surface-alt)]/60 rounded-lg px-3 py-2.5">
               {/* First row: date + amount */}
               <div className="flex justify-between items-center mb-2">
-                <span className="text-xs text-gray-400">
-                  {expense.purchaseDate || expense.date}
+                <span className="text-xs text-[var(--color-text-muted)]">
+                  {expense.date}
                   {cost.isEnded && expense.endDate && ` → ${expense.endDate}`}
                 </span>
                 <span className="text-sm font-bold text-cyan-400">{formatAmount(expense.amount)}</span>
@@ -638,15 +638,15 @@ function MergedCard({
               {/* Second row: labeled stats */}
               <div className="grid grid-cols-3 gap-2 text-center text-[10px]">
                 <div>
-                  <div className="text-gray-600 mb-0.5">已用</div>
+                  <div className="text-[var(--color-text-faint)] mb-0.5">已用</div>
                   <div className="text-xs">{cost.actualDays > 0 ? `${cost.actualDays}天` : '未开始'}</div>
                 </div>
                 <div>
-                  <div className="text-gray-600 mb-0.5">预计日均</div>
+                  <div className="text-[var(--color-text-faint)] mb-0.5">预计日均</div>
                   <div className="text-xs text-cyan-400">{formatAmount(cost.expectedDaily)}</div>
                 </div>
                 <div>
-                  <div className="text-gray-600 mb-0.5">实际日均</div>
+                  <div className="text-[var(--color-text-faint)] mb-0.5">实际日均</div>
                   <div className="text-xs">{cost.actualDays > 0 ? formatAmount(cost.actualDaily) : '—'}</div>
                 </div>
               </div>
@@ -654,14 +654,14 @@ function MergedCard({
               <div className="flex gap-2 mt-2">
                 <button
                   onClick={(e) => { e.stopPropagation(); navigate(`/add?edit=${expense.id}`); }}
-                  className="flex-1 py-1 rounded-md text-[10px] bg-gray-700 text-gray-500 hover:text-cyan-400 active:bg-gray-600 transition-colors"
+                  className="flex-1 py-1 rounded-md text-[10px] bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] hover:text-cyan-400 active:bg-gray-600 transition-colors"
                 >
                   ✎ 编辑
                 </button>
                 {!cost.isEnded && actionType === 'end' && (
                   <button
                     onClick={(e) => { e.stopPropagation(); onEndSingle(expense); }}
-                    className="flex-1 py-1 rounded-md text-[10px] bg-gray-700 text-gray-500 hover:text-red-400 active:bg-gray-600 transition-colors"
+                    className="flex-1 py-1 rounded-md text-[10px] bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] hover:text-red-400 active:bg-gray-600 transition-colors"
                   >
                     结束此笔
                   </button>
@@ -669,7 +669,7 @@ function MergedCard({
                 {cost.isEnded && actionType === 'reopen' && (
                   <button
                     onClick={(e) => { e.stopPropagation(); onEndSingle(expense); }}
-                    className="flex-1 py-1 rounded-md text-[10px] bg-gray-700 text-gray-500 hover:text-cyan-400 active:bg-gray-600 transition-colors"
+                    className="flex-1 py-1 rounded-md text-[10px] bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] hover:text-cyan-400 active:bg-gray-600 transition-colors"
                   >
                     重新激活
                   </button>
@@ -684,8 +684,8 @@ function MergedCard({
         onClick={() => onEndGroup(group)}
         className={`w-full mt-3 py-2 rounded-xl text-xs font-medium transition-colors ${
           actionType === 'end'
-            ? 'bg-gray-800 text-gray-500 hover:text-red-400 active:bg-gray-700'
-            : 'bg-gray-800 text-gray-400 hover:text-cyan-400 active:bg-gray-700'
+            ? 'bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] hover:text-red-400 active:bg-[var(--color-surface-alt)]'
+            : 'bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] hover:text-cyan-400 active:bg-[var(--color-surface-alt)]'
         }`}
       >
         {actionType === 'end' ? '全部结束使用' : '全部重新激活'}
@@ -709,12 +709,12 @@ function ItemCard({
   const isOverExpected = cost.actualDays > cost.lifespanDays;
 
   return (
-    <div className="bg-gray-900 rounded-2xl p-4">
+    <div className="bg-[var(--color-surface)] rounded-2xl p-4">
       <div className="flex justify-between items-start mb-3">
         <div>
           <div className="font-medium text-sm">{expense.description}</div>
-          <div className="text-xs text-gray-500">
-            {expense.purchaseDate || expense.date} 购入
+          <div className="text-xs text-[var(--color-text-muted)]">
+            {expense.date} 购入
             {cost.isEnded && expense.endDate && ` → ${expense.endDate} 结束`}
           </div>
         </div>
@@ -724,20 +724,20 @@ function ItemCard({
       </div>
 
       <div className="grid grid-cols-3 gap-2 mb-3">
-        <div className="bg-gray-800 rounded-xl p-2.5 text-center">
-          <div className="text-xs text-gray-500 mb-0.5">{cost.isEnded ? '实际使用' : '已用'}</div>
+        <div className="bg-[var(--color-surface-alt)] rounded-xl p-2.5 text-center">
+          <div className="text-xs text-[var(--color-text-muted)] mb-0.5">{cost.isEnded ? '实际使用' : '已用'}</div>
           <div className="text-sm font-semibold">
             {cost.actualDays > 0 ? `${cost.actualDays} 天` : '尚未开始'}
           </div>
         </div>
-        <div className="bg-gray-800 rounded-xl p-2.5 text-center">
-          <div className="text-xs text-gray-500 mb-0.5">预计日均</div>
+        <div className="bg-[var(--color-surface-alt)] rounded-xl p-2.5 text-center">
+          <div className="text-xs text-[var(--color-text-muted)] mb-0.5">预计日均</div>
           <div className="text-sm font-semibold text-cyan-400">
             {formatAmount(cost.expectedDaily)}
           </div>
         </div>
-        <div className="bg-gray-800 rounded-xl p-2.5 text-center">
-          <div className="text-xs text-gray-500 mb-0.5">实际日均</div>
+        <div className="bg-[var(--color-surface-alt)] rounded-xl p-2.5 text-center">
+          <div className="text-xs text-[var(--color-text-muted)] mb-0.5">实际日均</div>
           <div className="text-sm font-semibold">
             {cost.actualDays > 0 ? formatAmount(cost.actualDaily) : '—'}
           </div>
@@ -745,14 +745,14 @@ function ItemCard({
       </div>
 
       {/* Fun comparison */}
-      <div className="bg-gray-800/50 rounded-xl p-3 space-y-1.5 text-sm">
-        <div className="text-gray-400">
-          <span className="text-gray-500 text-xs">预计 </span>
+      <div className="bg-[var(--color-surface-alt)]/50 rounded-xl p-3 space-y-1.5 text-sm">
+        <div className="text-[var(--color-text-muted)]">
+          <span className="text-[var(--color-text-muted)] text-xs">预计 </span>
           {getFunText(cost.expectedDaily)}
         </div>
         {cost.actualDays > 0 && (
-          <div className="text-gray-400">
-            <span className="text-gray-500 text-xs">实际 </span>
+          <div className="text-[var(--color-text-muted)]">
+            <span className="text-[var(--color-text-muted)] text-xs">实际 </span>
             {getFunText(cost.actualDaily)}
           </div>
         )}
@@ -766,7 +766,7 @@ function ItemCard({
       )}
       {cost.hasLifespan && expense.lifespanYears && (
         <div className="mt-3">
-          <div className="flex justify-between text-xs text-gray-500 mb-1.5">
+          <div className="flex justify-between text-xs text-[var(--color-text-muted)] mb-1.5">
             <span>
               {cost.isEnded
                 ? isOverExpected
@@ -774,11 +774,11 @@ function ItemCard({
                   : `实际使用 ${cost.actualDays} 天 / 预期 ${Math.round(cost.lifespanDays)} 天`
                 : `预计使用 ${formatLifespan(expense.lifespanYears)}`}
             </span>
-            <span className={isOverExpected ? 'text-amber-400' : cost.isEnded ? 'text-gray-400' : ''}>
+            <span className={isOverExpected ? 'text-amber-400' : cost.isEnded ? 'text-[var(--color-text-muted)]' : ''}>
               {cost.usagePct}%
             </span>
           </div>
-          <div className="h-1.5 bg-gray-700 rounded-full overflow-hidden">
+          <div className="h-1.5 bg-[var(--color-surface-alt)] rounded-full overflow-hidden">
             <div
               className={`h-full rounded-full transition-all ${
                 isOverExpected ? 'bg-amber-500' : cost.isEnded ? 'bg-gray-500' : 'bg-cyan-500'
@@ -792,7 +792,7 @@ function ItemCard({
       <div className="flex gap-2 mt-3">
         <button
           onClick={() => navigate(`/add?edit=${expense.id}`)}
-          className="flex-1 py-2 rounded-xl text-xs font-medium bg-gray-800 text-gray-500 hover:text-cyan-400 active:bg-gray-700 transition-colors"
+          className="flex-1 py-2 rounded-xl text-xs font-medium bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] hover:text-cyan-400 active:bg-[var(--color-surface-alt)] transition-colors"
         >
           ✎ 编辑
         </button>
@@ -800,8 +800,8 @@ function ItemCard({
           onClick={() => onAction(expense)}
           className={`flex-1 py-2 rounded-xl text-xs font-medium transition-colors ${
             actionType === 'end'
-              ? 'bg-gray-800 text-gray-500 hover:text-red-400 active:bg-gray-700'
-              : 'bg-gray-800 text-gray-400 hover:text-cyan-400 active:bg-gray-700'
+              ? 'bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] hover:text-red-400 active:bg-[var(--color-surface-alt)]'
+              : 'bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] hover:text-cyan-400 active:bg-[var(--color-surface-alt)]'
           }`}
         >
           {actionType === 'end' ? '结束使用' : '重新激活'}

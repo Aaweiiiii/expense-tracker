@@ -1,0 +1,19 @@
+{
+  "name": "消费记录",
+  "short_name": "消费记录",
+  "description": "个人消费记录与复盘",
+  "start_url": "/expense-tracker/",
+  "scope": "/expense-tracker/",
+  "display": "standalone",
+  "background_color": "#111827",
+  "theme_color": "#0891b2",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/expense-tracker/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

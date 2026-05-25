@@ -49,7 +49,7 @@ export function LifespanPicker({ years, months, onYearsChange, onMonthsChange }:
 
   const colBtn = 'w-full py-3 rounded-xl text-center transition-colors select-none';
   const colActive = 'bg-cyan-600/20 ring-1 ring-cyan-600/50';
-  const colInactive = 'bg-gray-800 hover:bg-gray-700';
+  const colInactive = 'bg-[var(--color-surface-alt)] hover:bg-[var(--color-surface-alt)]';
   const optionBtn = 'w-full py-2 text-sm rounded-lg transition-colors text-center';
 
   function Dropdown({ items, selected, onSelect, unit }: {
@@ -73,7 +73,7 @@ export function LifespanPicker({ years, months, onYearsChange, onMonthsChange }:
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     return (
-      <div className="absolute left-0 right-0 bottom-full mb-1 z-20 bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+      <div className="absolute left-0 right-0 bottom-full mb-1 z-20 bg-[var(--color-surface-alt)] rounded-xl shadow-lg overflow-hidden">
         <div ref={listRef} className="overflow-y-auto scrollbar-hide" style={{ maxHeight: '200px' }}>
           <div className="py-1" />
           {items.map((v) => (
@@ -82,7 +82,7 @@ export function LifespanPicker({ years, months, onYearsChange, onMonthsChange }:
               type="button"
               data-value={v}
               onClick={() => onSelect(v)}
-              className={`${optionBtn} ${v === selected ? 'text-cyan-400 bg-cyan-600/10 font-medium' : 'text-gray-400 hover:text-gray-200 hover:bg-gray-700/50'}`}
+              className={`${optionBtn} ${v === selected ? 'text-cyan-400 bg-cyan-600/10 font-medium' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-alt)]/50'}`}
             >
               {v}{unit}
             </button>
@@ -90,9 +90,9 @@ export function LifespanPicker({ years, months, onYearsChange, onMonthsChange }:
           <div className="py-12" />
         </div>
         <div className="absolute top-0 left-0 right-0 h-8 pointer-events-none z-10"
-          style={{ background: 'linear-gradient(to bottom, #1f2937, transparent)' }} />
+          style={{ background: 'linear-gradient(to bottom, var(--color-surface-alt), transparent)' }} />
         <div className="absolute bottom-0 left-0 right-0 h-8 pointer-events-none z-10"
-          style={{ background: 'linear-gradient(to top, #1f2937, transparent)' }} />
+          style={{ background: 'linear-gradient(to top, var(--color-surface-alt), transparent)' }} />
       </div>
     );
   }
@@ -101,13 +101,13 @@ export function LifespanPicker({ years, months, onYearsChange, onMonthsChange }:
     <div ref={containerRef} className="flex gap-3">
       {/* Year */}
       <div className="flex-1 flex flex-col items-center gap-1 relative">
-        <span className="text-xs text-gray-500">年</span>
+        <span className="text-xs text-[var(--color-text-muted)]">年</span>
         <button
           type="button"
           onClick={() => setActive(active === 'year' ? null : 'year')}
           className={`${colBtn} ${active === 'year' ? colActive : colInactive}`}
         >
-          <span className="text-xl font-bold text-white">{years}</span>
+          <span className="text-xl font-bold text-[var(--color-text)]">{years}</span>
         </button>
         {active === 'year' && (
           <Dropdown items={yearOptions} selected={years} onSelect={handleYear} unit="年" />
@@ -116,13 +116,13 @@ export function LifespanPicker({ years, months, onYearsChange, onMonthsChange }:
 
       {/* Month */}
       <div className="flex-1 flex flex-col items-center gap-1 relative">
-        <span className="text-xs text-gray-500">月</span>
+        <span className="text-xs text-[var(--color-text-muted)]">月</span>
         <button
           type="button"
           onClick={() => setActive(active === 'month' ? null : 'month')}
           className={`${colBtn} ${active === 'month' ? colActive : colInactive}`}
         >
-          <span className="text-xl font-bold text-white">{months}</span>
+          <span className="text-xl font-bold text-[var(--color-text)]">{months}</span>
         </button>
         {active === 'month' && (
           <Dropdown items={monthOptions} selected={months} onSelect={handleMonth} unit="月" />

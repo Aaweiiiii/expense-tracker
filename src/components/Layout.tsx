@@ -1,11 +1,16 @@
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
+import { BillsIcon, AddIcon, StatsIcon, AnalysisIcon, SettingsIcon } from './Icon';
+import type { ComponentType } from 'react';
 
-const tabs = [
-  { to: '/', icon: '📋', label: '账单' },
-  { to: '/add', icon: '➕', label: '记账' },
-  { to: '/stats', icon: '📊', label: '统计' },
-  { to: '/analysis', icon: '💡', label: '分析' },
-  { to: '/settings', icon: '⚙️', label: '设置' },
+interface IconProps { size?: number; className?: string; }
+type TabIcon = ComponentType<IconProps>;
+
+const tabs: { to: string; Icon: TabIcon; label: string }[] = [
+  { to: '/', Icon: BillsIcon, label: '账单' },
+  { to: '/add', Icon: AddIcon, label: '记账' },
+  { to: '/stats', Icon: StatsIcon, label: '统计' },
+  { to: '/analysis', Icon: AnalysisIcon, label: '资产分析' },
+  { to: '/settings', Icon: SettingsIcon, label: '设置' },
 ];
 
 export function Layout() {
@@ -13,23 +18,23 @@ export function Layout() {
   const isAddPage = location.pathname === '/add';
 
   return (
-    <div className="min-h-dvh bg-gray-950 text-gray-100 pb-20">
+    <div className="min-h-dvh bg-[var(--color-ground)] text-[var(--color-text)] pb-20">
       <main className={`mx-auto max-w-lg px-4 pt-4 ${isAddPage ? '' : 'pb-4'}`}>
         <Outlet />
       </main>
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-gray-900/95 backdrop-blur border-t border-gray-800">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-[var(--color-surface)]/95 backdrop-blur border-t border-[var(--color-border)]">
         <div className="mx-auto max-w-lg flex justify-around py-2">
-          {tabs.map(({ to, icon, label }) => (
+          {tabs.map(({ to, Icon, label }) => (
             <NavLink
               key={to}
               to={to}
               className={({ isActive }) =>
-                `flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg text-xs transition-colors ${
-                  isActive ? 'text-cyan-400' : 'text-gray-500 hover:text-gray-300'
+                `flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg text-xs transition-all duration-200 ${
+                  isActive ? 'text-cyan-400 scale-105' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
                 }`
               }
             >
-              <span className="text-xl">{icon}</span>
+              <Icon size={22} />
               <span>{label}</span>
             </NavLink>
           ))}

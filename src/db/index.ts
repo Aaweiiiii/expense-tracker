@@ -6,8 +6,15 @@ class ExpenseDB extends Dexie {
 
   constructor() {
     super('ExpenseTrackerDB');
-    this.version(2).stores({
+    this.version(3).stores({
       expenses: '++id, date, category, amount, isBigPurchase, createdAt',
+    }).upgrade(async (tx) => {
+      const records = await tx.table('expenses').toArray();
+      for (const r of records as any[]) {
+        if (r.isBigPurchase && r.purchaseDate && r.purchaseDate !== r.date) {
+          await tx.table('expenses').update(r.id, { date: r.purchaseDate });
+        }
+      }
     });
   }
 }
