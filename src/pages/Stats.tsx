@@ -134,7 +134,7 @@ export function Stats() {
       let n = Math.ceil(max / step);
       if (n * step <= max) n++; // ensure niceMax > max
       if (n >= 4 && n <= 19) {
-        const niceMax = step * n;
+        const niceMax = step * (n + 1);
         const ticks: number[] = [0];
         for (let i = step; i <= niceMax + 0.001; i += step) {
           ticks.push(i);
@@ -244,24 +244,24 @@ export function Stats() {
       </div>
 
       {/* Month Total */}
-      <div className="bg-gradient-to-br from-purple-600 to-pink-700 rounded-2xl p-5 mb-5 shadow-lg animate-fade-in-up">
+      <div className="glass-card rounded-2xl p-5 mb-5 animate-fade-in-up">
         <div className="flex justify-between items-end">
           <div>
-            <div className="text-purple-200 text-sm mb-1">本月支出</div>
-            <div className="text-4xl font-bold">{formatAmount(expenseTotal)}</div>
+            <div className="text-sm mb-1" style={{ color: '#d4a8a8' }}>本月支出</div>
+            <div className="text-4xl font-bold" style={{ color: '#d4a8a8' }}>{formatAmount(expenseTotal)}</div>
           </div>
           {incomeTotal > 0 && (
             <div className="text-right">
-              <div className="text-green-200 text-sm mb-1">本月收入</div>
-              <div className="text-2xl font-bold text-green-300">{formatAmount(incomeTotal)}</div>
+              <div className="text-[var(--macaron-mint)] text-sm mb-1">本月收入</div>
+              <div className="text-2xl font-bold text-[var(--macaron-mint)]">{formatAmount(incomeTotal)}</div>
             </div>
           )}
         </div>
-        <div className="text-purple-200/70 text-xs mt-2 flex justify-between">
-          <span>共 {monthExpenses.length} 笔 · 日均支出 {formatAmount(dailyData.length > 0 ? expenseTotal / dailyData.length : 0)}</span>
+        <div className="text-[var(--color-text-muted)] text-xs mt-2 flex justify-between">
+          <span>共 {monthExpenses.length} 笔 · 日均支出 <span style={{ color: '#d4a8a8' }}>{formatAmount(dailyData.length > 0 ? expenseTotal / dailyData.length : 0)}</span></span>
           {incomeTotal > 0 && (
-            <span className={incomeTotal - expenseTotal >= 0 ? 'text-green-300' : 'text-red-300'}>
-              结余 {formatAmount(incomeTotal - expenseTotal)}
+            <span className="text-[var(--color-text-muted)]">
+              结余 <span className="text-[var(--macaron-mint)]">{formatAmount(incomeTotal - expenseTotal)}</span>
             </span>
           )}
         </div>
@@ -274,16 +274,16 @@ export function Stats() {
       ) : (
         <>
           {/* Daily Trend Bars */}
-          <div className="bg-[var(--color-surface)] rounded-2xl px-2 py-5 mb-4 animate-fade-in-up">
+          <div className="glass-card rounded-2xl px-2 py-5 mb-4 animate-fade-in-up">
             <h2 className="text-sm font-medium text-[var(--color-text-muted)] mb-4 px-3">每日趋势</h2>
             <div className="flex items-stretch gap-0 select-none" style={{ height: '180px' }}>
               {/* Left arrow */}
               <button
                 type="button"
                 onClick={() => scrollChart('left')}
-                className="flex items-center justify-center w-4 shrink-0 text-[var(--color-text-faint)] hover:text-[var(--color-text)] active:text-cyan-400 transition-colors"
+                className="flex items-center justify-center w-4 shrink-0 text-[var(--color-text-faint)] hover:text-[var(--color-text)] active:text-[var(--macaron-mint)] transition-colors"
               >
-                <span className="text-4xl">＜</span>
+                <span className="text-4xl leading-none">＜</span>
               </button>
               {/* Y-axis */}
               <div className="relative shrink-0" style={{ width: '34px' }}>
@@ -322,8 +322,8 @@ export function Stats() {
                         {barH > 0 && (
                           <>
                             <div
-                              className="absolute left-0 right-0 rounded-t-sm transition-all bg-gradient-to-t from-purple-500 to-pink-500"
-                              style={{ bottom: '18px', height: `${barH}px` }}
+                              className="absolute left-0 right-0 rounded-t-sm"
+                              style={{ bottom: '18px', height: `${barH}px`, animation: 'growUp 0.25s ease-out both', transformOrigin: 'bottom', background: 'linear-gradient(to top, #6aaccc, #84c2e4)' }}
                             />
                             <span
                               className="absolute left-0 right-0 text-center text-[var(--color-text-muted)] whitespace-nowrap"
@@ -333,7 +333,7 @@ export function Stats() {
                             </span>
                           </>
                         )}
-                        <span className={`absolute left-0 right-0 text-center text-[10px] whitespace-nowrap ${isToday ? 'text-cyan-400 font-medium' : 'text-[var(--color-text-faint)]'}`} style={{ bottom: 0 }}>{date}</span>
+                        <span className={`absolute left-0 right-0 text-center text-[10px] whitespace-nowrap ${isToday ? 'text-[var(--macaron-mint)] font-medium' : 'text-[var(--color-text-faint)]'}`} style={{ bottom: 0 }}>{date}</span>
                       </div>
                       );
                     })}
@@ -346,7 +346,7 @@ export function Stats() {
                       style={{
                         bottom: `${Math.min(179, 18 + (v / yScale.niceMax) * 162)}px`,
                         height: '1px',
-                        backgroundImage: `repeating-linear-gradient(to right, rgba(255,255,255,0.1) 0px, rgba(255,255,255,0.1) 4px, transparent 4px, transparent 8px)`,
+                        backgroundImage: `repeating-linear-gradient(to right, var(--chart-grid) 0px, var(--chart-grid) 4px, transparent 4px, transparent 8px)`,
                       }}
                     />
                   ))}
@@ -358,15 +358,15 @@ export function Stats() {
               <button
                 type="button"
                 onClick={() => scrollChart('right')}
-                className="flex items-center justify-center w-4 shrink-0 text-[var(--color-text-faint)] hover:text-[var(--color-text)] active:text-cyan-400 transition-colors"
+                className="flex items-center justify-center w-4 shrink-0 text-[var(--color-text-faint)] hover:text-[var(--color-text)] active:text-[var(--macaron-mint)] transition-colors"
               >
-                <span className="text-4xl">＞</span>
+                <span className="text-4xl leading-none">＞</span>
               </button>
             </div>
           </div>
 
           {/* Category Breakdown */}
-          <div className="bg-[var(--color-surface)] rounded-2xl p-5 mb-4 animate-fade-in-up">
+          <div className="glass-card rounded-2xl p-5 mb-4 animate-fade-in-up">
             <h2 className="text-sm font-medium text-[var(--color-text-muted)] mb-4">分类排行</h2>
             <div className="space-y-3">
               {sortedCategories.map(([cat, total]) => (
@@ -379,8 +379,8 @@ export function Stats() {
                   </div>
                   <div className="h-2 bg-[var(--color-surface-alt)] rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all"
-                      style={{ width: `${(total / maxTotal) * 100}%` }}
+                      className="h-full rounded-full transition-all"
+                      style={{ width: `${(total / maxTotal) * 100}%`, background: '#6aaccc' }}
                     />
                   </div>
                 </div>
@@ -390,14 +390,14 @@ export function Stats() {
 
           {/* AI Monthly Review */}
           {expenseTotal > 0 && (
-            <div className="bg-[var(--color-surface)] rounded-2xl p-5 animate-fade-in-up">
+            <div className="glass-card rounded-2xl p-5 animate-fade-in-up">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-sm font-medium text-[var(--color-text-muted)]">💬 月度复盘</h2>
                 {aiReview && hasApiKey() && (
                   <button
                     onClick={handleGenerateReview}
                     disabled={aiLoading}
-                    className="text-xs text-[var(--color-text-faint)] hover:text-cyan-400 transition-colors"
+                    className="text-xs text-[var(--color-text-faint)] hover:text-[var(--macaron-mint)] transition-colors"
                   >
                     🔄 再次复盘
                   </button>
@@ -416,7 +416,7 @@ export function Stats() {
                   <p className="text-sm text-red-400 mb-3">{aiError}</p>
                   <button
                     onClick={handleGenerateReview}
-                    className="text-sm text-cyan-400 hover:text-cyan-300"
+                    className="text-sm text-[var(--macaron-mint)] hover:text-[var(--macaron-pink)]"
                   >
                     重试
                   </button>
@@ -429,7 +429,8 @@ export function Stats() {
               ) : (
                 <button
                   onClick={handleGenerateReview}
-                  className="w-full py-3 rounded-xl text-sm font-medium bg-purple-600/20 text-purple-400 hover:bg-purple-600/30 active:bg-purple-600/40 transition-colors"
+                  className="w-full py-3 rounded-xl text-sm font-medium transition-colors"
+                  style={{ background: 'rgba(126, 203, 161, 0.15)', color: 'var(--macaron-mint)' }}
                 >
                   📊 生成本月复盘
                 </button>

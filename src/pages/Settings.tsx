@@ -145,7 +145,7 @@ export function Settings() {
 
       <div className="space-y-3">
         {/* Theme Toggle */}
-        <div className="bg-[var(--color-surface)] rounded-2xl p-4">
+        <div className="glass-card rounded-2xl p-4">
           <div className="flex items-center gap-4">
             <span className="text-2xl">{theme === 'light' ? '☀️' : '🌙'}</span>
             <div className="flex-1">
@@ -172,7 +172,7 @@ export function Settings() {
         </div>
 
         {/* Nickname */}
-        <div className="bg-[var(--color-surface)] rounded-2xl p-4">
+        <div className="glass-card rounded-2xl p-4">
           <div className="flex items-center gap-4 mb-3">
             <span className="text-2xl">👤</span>
             <div>
@@ -209,7 +209,7 @@ export function Settings() {
         {/* Export */}
         <button
           onClick={handleExport}
-          className="w-full bg-[var(--color-surface)] rounded-2xl p-4 text-left flex items-center gap-4 active:bg-[var(--color-surface-alt)] transition-all duration-200 active:scale-[0.99]"
+          className="w-full glass-card rounded-2xl p-4 text-left flex items-center gap-4 active:scale-[0.99]"
         >
           <span className="text-2xl">📤</span>
           <div>
@@ -221,7 +221,7 @@ export function Settings() {
         {/* Import */}
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="w-full bg-[var(--color-surface)] rounded-2xl p-4 text-left flex items-center gap-4 active:bg-[var(--color-surface-alt)] transition-all duration-200 active:scale-[0.99]"
+          className="w-full glass-card rounded-2xl p-4 text-left flex items-center gap-4 active:scale-[0.99]"
         >
           <span className="text-2xl">📥</span>
           <div>
@@ -238,7 +238,7 @@ export function Settings() {
         />
 
         {/* DeepSeek API Key */}
-        <div className="bg-[var(--color-surface)] rounded-2xl p-4">
+        <div className="glass-card rounded-2xl p-4">
           <div className="flex items-center gap-4 mb-3">
             <span className="text-2xl">🤖</span>
             <div>
@@ -282,7 +282,7 @@ export function Settings() {
         </div>
 
         {/* Cloud Sync via GitHub Gist */}
-        <div className="bg-[var(--color-surface)] rounded-2xl p-4">
+        <div className="glass-card rounded-2xl p-4">
           <div className="flex items-center gap-4 mb-3">
             <span className="text-2xl">☁️</span>
             <div>

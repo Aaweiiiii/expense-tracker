@@ -18,7 +18,7 @@ export function Layout() {
   const isAddPage = location.pathname === '/add';
 
   return (
-    <div className="min-h-dvh bg-[var(--color-ground)] text-[var(--color-text)] pb-20">
+    <div className="min-h-dvh text-[var(--color-text)] pb-20">
       <main className={`mx-auto max-w-lg px-4 pt-4 ${isAddPage ? '' : 'pb-4'}`}>
         <Outlet />
       </main>

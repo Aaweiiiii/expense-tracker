@@ -367,14 +367,14 @@ export function Analysis() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 gap-3 mb-4 stagger-children">
-        <div className="bg-[var(--color-surface)] rounded-2xl p-4">
+        <div className="glass-card rounded-2xl p-4">
           <div className="text-xs text-[var(--color-text-muted)] mb-1">资产消费总额</div>
           <div className="text-xl font-bold">{formatAmount(summary.totalAmount)}</div>
           <div className="text-xs text-[var(--color-text-faint)] mt-1">
             {summary.activeCount} 件进行中{summary.count > summary.activeCount ? ` · ${summary.count - summary.activeCount} 件已结束` : ''}
           </div>
         </div>
-        <div className="bg-[var(--color-surface)] rounded-2xl p-4">
+        <div className="glass-card rounded-2xl p-4">
           <div className="text-xs text-[var(--color-text-muted)] mb-1">实际日均合计</div>
           <div className="text-xl font-bold text-cyan-400">{formatAmount(summary.totalDaily)}</div>
           <div className="text-xs text-[var(--color-text-faint)] mt-1">
@@ -397,7 +397,7 @@ export function Analysis() {
             className={`px-3 py-1.5 rounded-lg text-xs transition-colors ${
               sortBy === key
                 ? 'bg-cyan-600/20 text-cyan-400'
-                : 'bg-[var(--color-surface)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
+                : 'glass-card text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
             }`}
           >
             {label}
@@ -407,7 +407,7 @@ export function Analysis() {
 
       {/* Chart */}
       {chartItems.length > 0 && (
-      <div className="bg-[var(--color-surface)] rounded-2xl p-5 mb-5 animate-fade-in-up">
+      <div className="glass-card rounded-2xl p-5 mb-5 animate-fade-in-up focus:outline-none">
         <h2 className="text-sm font-medium text-[var(--color-text-muted)] mb-4">{chartTitle}</h2>
         <ResponsiveContainer width="100%" height={Math.max(80, chartItems.length * 36 + 20)}>
           <BarChart
@@ -421,25 +421,28 @@ export function Analysis() {
               dataKey="name"
               axisLine={false}
               tickLine={false}
-              tick={{ fill: '#9ca3af', fontSize: 12 }}
+              tick={{ fill: 'var(--color-text-muted)', fontSize: 12 }}
               width={70}
             />
             <Tooltip
+              cursor={false}
               formatter={(value) => [chartTooltipFormat(value as number), chartTooltip]}
               contentStyle={{
-                backgroundColor: '#1f2937',
-                border: 'none',
+                backgroundColor: 'var(--color-surface)',
+                border: '1px solid var(--color-border)',
                 borderRadius: '12px',
-                color: '#e5e7eb',
+                color: 'var(--color-text)',
                 fontSize: '13px',
               }}
+              labelStyle={{ color: 'var(--color-text-muted)' }}
+              itemStyle={{ color: 'var(--color-text)' }}
             />
             <Bar dataKey="value" radius={[0, 6, 6, 0]}>
               {chartItems.map((_, i) => (
                 <Cell
                   key={i}
                   fill={
-                    ['#06b6d4', '#8b5cf6', '#f59e0b', '#10b981', '#ef4444', '#3b82f6', '#ec4899', '#14b8a6'][i]
+                    ['#9ab9a8', '#cca8a8', '#a3bcc8', '#b8acb8', '#ccc0a4', '#a3bcb4', '#ccb4b4', '#a8bcc4'][i]
                   }
                 />
               ))}
@@ -565,7 +568,7 @@ function MergedCard({
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="bg-[var(--color-surface)] rounded-2xl p-4 ring-1 ring-cyan-600/30">
+    <div className="glass-card rounded-2xl p-4 ring-1 ring-cyan-600/30">
       {/* Header - clickable */}
       <button
         onClick={() => setExpanded(!expanded)}
@@ -709,7 +712,7 @@ function ItemCard({
   const isOverExpected = cost.actualDays > cost.lifespanDays;
 
   return (
-    <div className="bg-[var(--color-surface)] rounded-2xl p-4">
+    <div className="glass-card rounded-2xl p-4">
       <div className="flex justify-between items-start mb-3">
         <div>
           <div className="font-medium text-sm">{expense.description}</div>

@@ -1,13 +1,15 @@
 @import "tailwindcss";
 
+@variant dark (&:where(.dark, .dark *));
+
 :root {
   /* Light theme (default) */
   --color-ground: #f0f2f5;
   --color-surface: #ffffff;
   --color-surface-alt: #f3f4f6;
   --color-text: #111827;
-  --color-text-muted: #6b7280;
-  --color-text-faint: #9ca3af;
+  --color-text-muted: #4b5563;
+  --color-text-faint: #7d8a96;
   --color-border: #e5e7eb;
   --color-accent: #0891b2;
   --color-accent-soft: #06b6d4;
@@ -17,11 +19,19 @@
   --color-income-bg: rgba(5, 150, 105, 0.1);
   --color-danger: #ef4444;
   --color-danger-bg: rgba(239, 68, 68, 0.08);
-  --gradient-stat: linear-gradient(135deg, #7c3aed, #db2777);
-  --gradient-day: linear-gradient(135deg, #0891b2, #2563eb);
-  --color-icon: #515151;
+  --gradient-stat: linear-gradient(135deg, #8ecfbb, #e8b4b4);
+  --gradient-day: linear-gradient(135deg, #7ecba1, #e8a0a0);
+  --color-icon: #333333;
   --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  /* Macaron palette */
+  --macaron-mint: #7ecba1;
+  --macaron-pink: #e8a0a0;
+  --macaron-mint-light: #c8f0dc;
+  --macaron-pink-light: #fce4e4;
+  --chart-grid: rgba(0, 0, 0, 0.06);
+  --bg-image: url('./assets/bg-light.png');
+  --bg-saturate: 0.6;
 }
 
 .dark {
@@ -37,22 +47,68 @@
   --color-accent-bg: rgba(6, 182, 212, 0.15);
   --color-income-bg: rgba(74, 222, 128, 0.1);
   --color-danger-bg: rgba(248, 113, 113, 0.1);
-  --gradient-stat: linear-gradient(135deg, #7c3aed, #ec4899);
-  --gradient-day: linear-gradient(135deg, #0891b2, #4f46e5);
+  --gradient-stat: linear-gradient(135deg, #5a9a85, #b87a7a);
+  --gradient-day: linear-gradient(135deg, #5a9a85, #b87a7a);
   --shadow-card: none;
   --shadow-sm: none;
+  /* Macaron palette — dark mode (muted) */
+  --macaron-mint: #5ca882;
+  --macaron-pink: #c08080;
+  --macaron-mint-light: #3d6b55;
+  --macaron-pink-light: #6b4545;
+  --chart-grid: rgba(255, 255, 255, 0.08);
+  --bg-image: url('./assets/bg-dark.png');
+  --bg-saturate: 1;
 }
 
 body {
   margin: 0;
   -webkit-tap-highlight-color: transparent;
   overflow-x: hidden;
-  background: var(--color-ground);
+  background-color: var(--color-ground);
   color: var(--color-text);
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-image: var(--bg-image);
+  background-size: cover;
+  background-position: center;
+  filter: saturate(var(--bg-saturate));
 }
 
 #root {
   min-height: 100dvh;
+}
+
+/* ── Glass morphism ── */
+.glass-card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08), 0 4px 24px rgba(0, 0, 0, 0.04), inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+.glass-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E");
+  background-size: 256px 256px;
+  background-repeat: repeat;
+  opacity: 0.35;
+}
+.dark .glass-card {
+  background: rgba(31, 41, 55, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.05), 0 4px 24px rgba(0, 0, 0, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.06);
 }
 
 .scrollbar-hide {
@@ -61,6 +117,16 @@ body {
 }
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+}
+
+/* Prevent focus outline on Recharts click */
+.recharts-responsive-container,
+.recharts-responsive-container *:focus,
+.recharts-responsive-container *:focus-visible,
+.recharts-wrapper,
+.recharts-wrapper *:focus,
+.recharts-wrapper *:focus-visible {
+  outline: none !important;
 }
 
 /* ── Animations ── */
@@ -112,3 +178,28 @@ body {
 .stagger-children > *:nth-child(8) { animation-delay: 0.35s; }
 .stagger-children > *:nth-child(9) { animation-delay: 0.40s; }
 .stagger-children > *:nth-child(10) { animation-delay: 0.45s; }
+
+/* Fast stagger — 2x speed */
+.stagger-fast > * {
+  animation: fadeInUp 0.18s ease-out both;
+}
+.stagger-fast > *:nth-child(1) { animation-delay: 0.000s; }
+.stagger-fast > *:nth-child(2) { animation-delay: 0.025s; }
+.stagger-fast > *:nth-child(3) { animation-delay: 0.050s; }
+.stagger-fast > *:nth-child(4) { animation-delay: 0.075s; }
+.stagger-fast > *:nth-child(5) { animation-delay: 0.100s; }
+.stagger-fast > *:nth-child(6) { animation-delay: 0.125s; }
+.stagger-fast > *:nth-child(7) { animation-delay: 0.150s; }
+.stagger-fast > *:nth-child(8) { animation-delay: 0.175s; }
+.stagger-fast > *:nth-child(9) { animation-delay: 0.200s; }
+.stagger-fast > *:nth-child(10) { animation-delay: 0.225s; }
+
+.animate-fade-in-up-fast {
+  animation: fadeInUp 0.18s ease-out both;
+}
+
+/* Bar chart growth animation */
+@keyframes growUp {
+  from { transform: scaleY(0); }
+  to   { transform: scaleY(1); }
+}

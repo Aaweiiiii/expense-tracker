@@ -8,6 +8,10 @@ import { useDataRefresh } from '../hooks/useData';
 import { DatePicker } from '../components/DatePicker';
 import { LifespanPicker } from '../components/LifespanPicker';
 import { generateDailyReview, getCachedDailyReview, setCachedDailyReview, hasApiKey } from '../utils/ai';
+import flightIcon from '../assets/icons/flight.png';
+import dataAnalysisIcon from '../assets/icons/data-analysis.png';
+import refreshIcon from '../assets/icons/refresh.png';
+import recordIcon from '../assets/icons/record.png';
 
 const GREETINGS: Record<number, string[]> = {
   0: ['夜深了，还没记账的话，记完就早点休息吧 🌙', '这么晚还在记账，真是辛苦了，明天也要加油呀 💤', '深夜的账单，藏着你白天的故事，记完好好睡一觉 🛌', '已经很晚了，简单记一笔，然后放下手机吧 🌃', '辛苦了，凌晨的每一笔记录，都是你认真生活的证据 ✨', '夜色最深的时候，也是和自己对话的最好时候，记一笔吧 📝'],
@@ -328,28 +332,28 @@ export function Home() {
       const catIcons = editType === 'expense' ? EXPENSE_ICONS : INCOME_ICONS;
       const isExpense = editType === 'expense';
       return (
-        <div key={expense.id} className="bg-[var(--color-surface)] rounded-xl p-4 space-y-3">
+        <div key={expense.id} className="glass-card rounded-xl p-4 space-y-3">
           {/* Type toggle */}
-          <div className="bg-[var(--color-surface-alt)] rounded-lg p-0.5 flex">
+          <div className="bg-white/30 rounded-lg p-0.5 flex">
             <button
               type="button"
               onClick={() => setEditType('expense')}
-              className={`flex-1 py-1.5 rounded-md text-xs font-medium transition-colors ${isExpense ? 'bg-cyan-600 text-white' : 'text-[var(--color-text-muted)]'}`}
+              className={`flex-1 py-1.5 rounded-md text-xs font-semibold transition-colors ${isExpense ? 'bg-cyan-600/75 text-white' : 'text-[var(--color-text)]'}`}
             >支出</button>
             <button
               type="button"
               onClick={() => setEditType('income')}
-              className={`flex-1 py-1.5 rounded-md text-xs font-medium transition-colors ${!isExpense ? 'bg-green-600 text-white' : 'text-[var(--color-text-muted)]'}`}
+              className={`flex-1 py-1.5 rounded-md text-xs font-semibold transition-colors ${!isExpense ? 'bg-green-600/75 text-white' : 'text-[var(--color-text)]'}`}
             >收入</button>
           </div>
           {/* Amount */}
           <div className="flex items-center gap-2">
-            <span className={`font-bold text-lg ${isExpense ? 'text-cyan-400' : 'text-green-400'}`}>¥</span>
+            <span className="font-bold text-lg text-[var(--color-text)]">¥</span>
             <input
               type="number" step="0.01" inputMode="decimal"
               value={editAmount}
               onChange={(e) => setEditAmount(e.target.value)}
-              className="flex-1 bg-[var(--color-surface-alt)] rounded-lg px-3 py-2 text-lg font-bold outline-none focus:ring-1 focus:ring-cyan-600"
+              className="flex-1 bg-white/40 rounded-lg px-3 py-2 text-lg font-bold text-[var(--color-text)] outline-none focus:ring-1 focus:ring-cyan-600"
             />
           </div>
           {/* Category */}
@@ -359,10 +363,10 @@ export function Home() {
                 key={cat}
                 type="button"
                 onClick={() => setEditCategory(cat)}
-                className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs transition-colors ${
+                className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold transition-colors ${
                   editCategory === cat
-                    ? (isExpense ? 'bg-cyan-600/20 text-cyan-400 ring-1 ring-cyan-600/50' : 'bg-green-600/20 text-green-400 ring-1 ring-green-600/50')
-                    : 'bg-[var(--color-surface-alt)] text-[var(--color-text-muted)]'
+                    ? 'bg-cyan-600/25 text-[var(--color-text)] ring-1 ring-cyan-600/40'
+                    : 'bg-white/40 text-[var(--color-text)]'
                 }`}
               >
                 {(() => { const CI = catIcons[cat]; return <CI size={16} />; })()}
@@ -376,28 +380,28 @@ export function Home() {
             value={editDesc}
             onChange={(e) => setEditDesc(e.target.value)}
             placeholder="描述"
-            className="w-full bg-[var(--color-surface-alt)] rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-cyan-600 placeholder-[var(--color-text-faint)]"
+            className="w-full bg-white/40 rounded-lg px-3 py-2 text-sm font-semibold text-[var(--color-text)] outline-none focus:ring-1 focus:ring-cyan-600 placeholder-[var(--color-text-faint)]"
           />
           {/* Date */}
-          <DatePicker value={editDate} onChange={setEditDate} />
+          <DatePicker value={editDate} onChange={setEditDate} transparent />
           {/* Asset toggle */}
           {isExpense && (
-            <div className="bg-[var(--color-surface-alt)] rounded-lg p-3">
+            <div className="bg-white/30 rounded-lg p-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-xs font-medium">标记为资产消费</div>
+                  <div className="text-xs font-semibold text-[var(--color-text)]">标记为资产消费</div>
                 </div>
                 <button
                   type="button"
                   onClick={() => setEditIsAsset(!editIsAsset)}
-                  className={`relative w-10 h-5 rounded-full transition-colors ${editIsAsset ? 'bg-cyan-600' : 'bg-gray-600'}`}
+                  className={`relative w-10 h-5 rounded-full transition-colors ${editIsAsset ? 'bg-cyan-600/75' : 'bg-gray-400/50'}`}
                 >
                   <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-transform ${editIsAsset ? 'translate-x-[18px]' : 'translate-x-0.5'}`} />
                 </button>
               </div>
               {editIsAsset && (
                 <div className="mt-3 pt-3 border-t border-[var(--color-border)]">
-                  <label className="text-xs text-[var(--color-text-muted)] block mb-2">预计使用时间</label>
+                  <label className="text-xs font-semibold text-[var(--color-text)] block mb-2">预计使用时间</label>
                   <LifespanPicker
                     years={editLifespanY}
                     months={editLifespanM}
@@ -413,11 +417,11 @@ export function Home() {
             <button
               onClick={handleEditSave}
               disabled={editSaving}
-              className={`flex-1 py-2 rounded-lg text-sm font-medium text-white active:opacity-80 disabled:opacity-50 ${isExpense ? 'bg-cyan-600' : 'bg-green-600'}`}
+              className={`flex-1 py-2 rounded-lg text-sm font-medium text-white active:opacity-80 disabled:opacity-50 ${isExpense ? 'bg-cyan-600/75' : 'bg-green-600/75'}`}
             >{editSaving ? '保存中...' : '保存'}</button>
             <button
               onClick={cancelEdit}
-              className="flex-1 py-2 rounded-lg text-sm text-[var(--color-text-muted)] bg-[var(--color-surface-alt)] active:bg-[var(--color-surface-alt)]"
+              className="flex-1 py-2 rounded-lg text-sm font-semibold text-[var(--color-text)] bg-white/40 active:bg-white/50"
             >取消</button>
           </div>
         </div>
@@ -430,19 +434,19 @@ export function Home() {
     return (
       <div
         key={expense.id}
-        className="flex items-center gap-3 bg-[var(--color-surface)] rounded-xl px-4 py-3 active:scale-[0.98] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+        className="flex items-center gap-3 glass-card rounded-xl px-4 py-3 active:scale-[0.98] transition-all duration-200"
       >
-        <IconComp size={24} className="shrink-0 text-[var(--color-icon)]" />
+        <IconComp size={24} className="shrink-0 text-[var(--color-text)]" />
         <div className="flex-1 min-w-0">
-          <div className="text-sm truncate flex items-center gap-1.5">
+          <div className="text-sm truncate flex items-center gap-1.5 text-[var(--color-text)] font-medium">
             {expense.description || expense.category}
             {isIncome && (
-              <span className="shrink-0 text-[10px] bg-green-600/20 text-green-400 px-1.5 py-0.5 rounded">
+              <span className="shrink-0 text-[10px] bg-green-600/20 text-green-600 px-1.5 py-0.5 rounded font-semibold">
                 收入
               </span>
             )}
             {!isIncome && expense.isBigPurchase && (
-              <span className="shrink-0 text-[10px] bg-cyan-600/20 text-cyan-400 px-1.5 py-0.5 rounded">
+              <span className="shrink-0 text-[10px] bg-cyan-600/20 text-cyan-600 px-1.5 py-0.5 rounded font-semibold">
                 资产
               </span>
             )}
@@ -451,29 +455,29 @@ export function Home() {
             <div className="text-xs text-[var(--color-text-muted)]">{expense.subcategory}</div>
           )}
           {!isIncome && expense.isBigPurchase && (
-            <div className="text-xs text-[var(--color-text-faint)]">
+            <div className="text-xs text-[var(--color-text-muted)]">
               预计使用 {expense.lifespanYears ? formatLifespan(expense.lifespanYears) : '未设置'}
             </div>
           )}
         </div>
         <div className="text-right">
-          <div className={`font-semibold ${isIncome ? 'text-green-400' : ''}`}>
+          <div className={`font-semibold text-[var(--color-text)]`}>
             {isIncome ? '+' : ''}{formatAmount(expense.amount)}
           </div>
           {expense.tags && expense.tags.length > 0 && (
-            <div className="text-xs text-[var(--color-text-faint)]">{expense.tags[0]}</div>
+            <div className="text-xs text-[var(--color-text-muted)]">{expense.tags[0]}</div>
           )}
         </div>
         <button
           onClick={(e) => { e.stopPropagation(); startEdit(expense); }}
-          className="text-[var(--color-text-faint)] hover:text-cyan-400 text-sm shrink-0"
+          className="text-[var(--color-text-muted)] hover:text-[var(--color-text)] text-sm shrink-0"
           title="编辑"
         >
           ✎
         </button>
         <button
           onClick={(e) => { e.stopPropagation(); handleDelete(expense.id!); }}
-          className="text-[var(--color-text-faint)] hover:text-red-400 text-sm ml-0.5 shrink-0"
+          className="text-[var(--color-text-muted)] hover:text-[var(--color-text)] text-sm ml-0.5 shrink-0"
         >
           ✕
         </button>
@@ -483,64 +487,80 @@ export function Home() {
 
   return (
     <div>
+      {/* Day Navigator */}
+      <div className="glass-card rounded-2xl px-3 py-2 mb-4">
+        <div className="relative flex items-center justify-center">
+          <button
+            onClick={goPrevDay}
+            disabled={!canGoPrev}
+            className={`absolute left-0 text-lg px-0.5 ${canGoPrev ? 'text-[var(--color-text)] hover:text-[var(--color-text)]' : 'text-[var(--color-text-faint)]'}`}
+          >
+            ＜
+          </button>
+          <DatePicker value={selectedDate} onChange={setSelectedDate} availableDates={recordedDatesSet} compact />
+          <div className="absolute right-0 flex items-center gap-0.5">
+            <button
+              onClick={goNextDay}
+              disabled={!canGoNext}
+              className={`text-lg px-0.5 ${canGoNext ? 'text-[var(--color-text)] hover:text-[var(--color-text)]' : 'text-[var(--color-text-faint)]'}`}
+            >
+              ＞
+            </button>
+            {!isToday && (
+              <button
+                onClick={() => setSelectedDate(today)}
+                className="text-[var(--color-text)] hover:text-[var(--color-text)] shrink-0 flex items-center"
+                title="回到今日"
+              >
+                <span
+                  className="inline-block align-middle"
+                  style={{
+                    width: 17,
+                    height: 17,
+                    backgroundColor: 'currentColor',
+                    maskImage: `url(${flightIcon})`,
+                    maskSize: 'contain',
+                    maskRepeat: 'no-repeat',
+                    maskPosition: 'center',
+                    WebkitMaskImage: `url(${flightIcon})`,
+                    WebkitMaskSize: 'contain',
+                    WebkitMaskRepeat: 'no-repeat',
+                    WebkitMaskPosition: 'center',
+                  }}
+                />
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Greeting */}
       <div className="mb-4">
         <div className="flex items-baseline gap-2">
-          <span className="text-lg font-bold text-[var(--color-text)]">
+          <span className="text-lg font-bold text-[#111827] dark:text-white/90">
             {greeting}
           </span>
         </div>
         {moodText && (
-          <p className="text-sm text-[var(--color-text-muted)] mt-1 leading-relaxed">
+          <p className="text-sm text-[#4b5563] dark:text-white/70 mt-1 leading-relaxed">
             {moodText}
           </p>
         )}
       </div>
 
-      {/* Day Navigator */}
-      <div className="bg-[var(--color-surface)] rounded-2xl p-3 mb-4">
-        <div className="flex items-center gap-1">
-          <button
-            onClick={goPrevDay}
-            disabled={!canGoPrev}
-            className={`text-xl px-1 ${canGoPrev ? 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]' : 'text-[var(--color-text-faint)]'}`}
-          >
-            ＜
-          </button>
-          <div className="flex-1">
-            <DatePicker value={selectedDate} onChange={setSelectedDate} availableDates={recordedDatesSet} />
-          </div>
-          <button
-            onClick={goNextDay}
-            disabled={!canGoNext}
-            className={`text-xl px-1 ${canGoNext ? 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]' : 'text-[var(--color-text-faint)]'}`}
-          >
-            ＞
-          </button>
-          {!isToday && (
-            <button
-              onClick={() => setSelectedDate(today)}
-              className="text-xs text-cyan-400 hover:text-cyan-300 px-1 shrink-0"
-            >
-              📍
-            </button>
-          )}
-        </div>
-      </div>
-
       {/* Daily Summary Card */}
-      <div className="bg-gradient-to-br from-cyan-600 to-blue-700 rounded-2xl p-5 mb-5 shadow-lg">
-        <div className="text-cyan-200 text-xs mb-1">
+      <div className="glass-card rounded-2xl p-5 mb-5">
+        <div className="text-[var(--color-text)] text-sm font-semibold mb-1">
           {isToday ? '今天' : `${sm}月${sd}日`}
         </div>
         <div className="flex justify-between items-end">
           <div>
-            <div className="text-cyan-200/80 text-xs mb-0.5">支出</div>
-            <div className="text-3xl font-extrabold tracking-tight">{formatAmount(dayExpense)}</div>
+            <div className="text-[var(--color-text-muted)] text-sm font-semibold mb-0.5">支出</div>
+            <div className="text-3xl font-extrabold tracking-tight text-[var(--color-text)]">{formatAmount(dayExpense)}</div>
           </div>
           <div className="text-right">
-            <div className="text-green-200/80 text-xs mb-0.5">收入</div>
-            <div className="text-3xl font-extrabold tracking-tight text-green-300">{formatAmount(dayIncome)}</div>
+            <div className="text-[var(--color-text-muted)] text-sm font-semibold mb-0.5">收入</div>
+            <div className="text-3xl font-extrabold tracking-tight text-[var(--color-text)]">{formatAmount(dayIncome)}</div>
           </div>
         </div>
       </div>
@@ -550,7 +570,7 @@ export function Home() {
         {loading ? (
           <div className="space-y-2">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-[var(--color-surface)] rounded-xl px-4 py-4 flex items-center gap-3">
+              <div key={i} className="glass-card rounded-xl px-4 py-4 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg animate-shimmer shrink-0" />
                 <div className="flex-1 space-y-2">
                   <div className="h-4 w-24 rounded animate-shimmer" />
@@ -562,8 +582,10 @@ export function Home() {
           </div>
         ) : dayRecords.length === 0 ? (
           <div className="text-center py-16">
-            <div className="text-5xl mb-4">📝</div>
-            <div className="text-[var(--color-text-muted)]">
+            <div className="mb-4 flex justify-center">
+              <span className="inline-block text-[#4b5563] dark:text-[var(--color-text-faint)]" style={{ width: 56, height: 56, backgroundColor: 'currentColor', maskImage: `url(${recordIcon})`, maskSize: 'contain', maskRepeat: 'no-repeat', maskPosition: 'center', WebkitMaskImage: `url(${recordIcon})`, WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center' }} />
+            </div>
+            <div className="text-[#4b5563] dark:text-[var(--color-text-muted)]">
               {sm}月{sd}日暂无记录
             </div>
             <button
@@ -579,16 +601,18 @@ export function Home() {
 
         {/* Daily Review */}
         {!loading && (
-          <div className="bg-[var(--color-surface)] rounded-2xl p-5 mt-4 animate-fade-in-up">
+          <div className="glass-card rounded-2xl p-5 mt-4 animate-fade-in-up">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-medium text-[var(--color-text-muted)]">📊 本日复盘</h2>
+              <h2 className="text-sm font-medium text-[var(--color-text-muted)] flex items-center gap-1.5">
+                <span className="inline-block shrink-0" style={{ width: 16, height: 16, backgroundColor: 'currentColor', maskImage: `url(${dataAnalysisIcon})`, maskSize: 'contain', maskRepeat: 'no-repeat', maskPosition: 'center', WebkitMaskImage: `url(${dataAnalysisIcon})`, WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center' }} />
+                本日复盘</h2>
               {dailyReview && hasApiKey() && (
                 <button
                   onClick={handleGenerateDailyReview}
                   disabled={dailyReviewLoading}
-                  className="text-xs text-[var(--color-text-faint)] hover:text-cyan-400 transition-colors"
+                  className="text-xs text-[var(--color-text-faint)] hover:text-cyan-400 transition-colors inline-flex items-center gap-1"
                 >
-                  🔄 再次复盘
+                  <span className="inline-block shrink-0 align-text-bottom" style={{ width: 13, height: 13, backgroundColor: 'currentColor', maskImage: `url(${refreshIcon})`, maskSize: 'contain', maskRepeat: 'no-repeat', maskPosition: 'center', WebkitMaskImage: `url(${refreshIcon})`, WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center' }} /> 再次复盘
                 </button>
               )}
             </div>
@@ -612,9 +636,10 @@ export function Home() {
             ) : (
               <button
                 onClick={handleGenerateDailyReview}
-                className="w-full py-3 rounded-xl text-sm font-medium bg-cyan-600/10 text-cyan-400 hover:bg-cyan-600/20 active:bg-cyan-600/30 transition-colors"
+                className="w-full py-3 rounded-xl text-sm font-medium bg-cyan-600/10 text-cyan-400 hover:bg-cyan-600/20 active:bg-cyan-600/30 transition-colors inline-flex items-center justify-center gap-1.5"
               >
-                📊 生成本日复盘
+                <span className="inline-block shrink-0" style={{ width: 16, height: 16, backgroundColor: 'currentColor', maskImage: `url(${dataAnalysisIcon})`, maskSize: 'contain', maskRepeat: 'no-repeat', maskPosition: 'center', WebkitMaskImage: `url(${dataAnalysisIcon})`, WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center' }} />
+                生成本日复盘
               </button>
             )}
           </div>

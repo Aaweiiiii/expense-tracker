@@ -125,17 +125,18 @@ export function AddExpense() {
 
   return (
     <div>
-      <h1 className="text-xl font-bold mb-5">{isEdit ? '编辑记录' : '记一笔'}</h1>
+      <h1 className="text-xl font-bold mb-5 animate-fade-in-up-fast">{isEdit ? '编辑记录' : '记一笔'}</h1>
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-5 stagger-fast">
         {/* Type Toggle */}
-        <div className="bg-[var(--color-surface)] rounded-xl p-1 flex">
+        <div className="glass-card rounded-xl p-1 flex">
           <button
             type="button"
             onClick={() => setRecordType('expense')}
             className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
               isExpense ? 'bg-cyan-600 text-white' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
             }`}
+            style={isExpense ? { filter: 'saturate(0.5) brightness(1.2)' } : undefined}
           >
             支出
           </button>
@@ -145,15 +146,21 @@ export function AddExpense() {
             className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
               !isExpense ? 'bg-green-600 text-white' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
             }`}
+            style={!isExpense ? { filter: 'saturate(0.5) brightness(1.2)' } : undefined}
           >
             收入
           </button>
         </div>
 
+        {/* Date */}
+        <div className="glass-card rounded-xl p-4 relative z-10">
+          <DatePicker value={date} onChange={setDate} />
+        </div>
+
         {/* Amount */}
         <div>
           <label className="text-sm text-[var(--color-text-muted)] block mb-2">金额</label>
-          <div className="bg-[var(--color-surface)] rounded-xl px-4 py-3 flex items-center gap-2">
+          <div className="glass-card rounded-xl px-4 py-3 flex items-center gap-2">
             <span className={`font-bold text-xl ${isExpense ? 'text-cyan-400' : 'text-green-400'}`}>¥</span>
             <input
               type="number"
@@ -180,53 +187,45 @@ export function AddExpense() {
           </div>
         </div>
 
-        {/* Category */}
-        <div>
-          <label className="text-sm text-[var(--color-text-muted)] block mb-2">分类</label>
-          <div className={`grid gap-2 ${categories.length <= 5 ? 'grid-cols-5' : 'grid-cols-5'}`}>
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                type="button"
-                onClick={() => setCategory(cat)}
-                className={`flex flex-col items-center gap-1 p-2 rounded-xl text-xs transition-colors ${
-                  category === cat
-                    ? isExpense
-                      ? 'bg-cyan-600/20 text-cyan-400 ring-1 ring-cyan-600/50'
-                      : 'bg-green-600/20 text-green-400 ring-1 ring-green-600/50'
-                    : 'bg-[var(--color-surface)] text-[var(--color-text-muted)] hover:bg-[var(--color-surface-alt)]'
-                }`}
-              >
-                {(() => { const CI = icons[cat]; return <CI size={20} />; })()}
-                <span>{cat}</span>
-              </button>
-            ))}
+        {/* Category + Description */}
+        <div className="glass-card rounded-xl p-4 space-y-4">
+          <div>
+            <label className="text-sm text-[var(--color-text-muted)] block mb-2">分类</label>
+            <div className="grid grid-cols-5 gap-2">
+              {categories.map((cat) => (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => setCategory(cat)}
+                  className={`flex flex-col items-center gap-1 p-2 rounded-xl text-xs transition-colors ${
+                    category === cat
+                      ? isExpense
+                        ? 'bg-cyan-600/20 text-cyan-400 ring-1 ring-cyan-600/50'
+                        : 'bg-green-600/20 text-green-400 ring-1 ring-green-600/50'
+                      : 'bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] hover:opacity-80'
+                  }`}
+                >
+                  {(() => { const CI = icons[cat]; return <CI size={20} />; })()}
+                  <span>{cat}</span>
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-
-        {/* Description */}
-        <div>
-          <label className="text-sm text-[var(--color-text-muted)] block mb-2">描述（可选）</label>
-          <input
-            type="text"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder={isExpense ? '例如：中午牛肉面' : '例如：5月工资'}
-            className="w-full bg-[var(--color-surface)] rounded-xl px-4 py-3 text-sm outline-none placeholder-[var(--color-text-faint)] focus:ring-1 focus:ring-cyan-600"
-          />
-        </div>
-
-        {/* Date */}
-        <div>
-          <label className="text-sm text-[var(--color-text-muted)] block mb-2">日期</label>
-          <div className="bg-[var(--color-surface)] rounded-xl p-4">
-            <DatePicker value={date} onChange={setDate} />
+          <div>
+            <label className="text-sm text-[var(--color-text-muted)] block mb-2">描述（可选）</label>
+            <input
+              type="text"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder={isExpense ? '例如：中午牛肉面' : '例如：5月工资'}
+              className="w-full bg-[var(--color-surface-alt)] rounded-xl px-4 py-3 text-sm outline-none placeholder-[var(--color-text-faint)] focus:ring-1 focus:ring-cyan-600"
+            />
           </div>
         </div>
 
         {/* Big Purchase Toggle — expense only */}
         {isExpense && (
-          <div className="bg-[var(--color-surface)] rounded-xl p-4">
+          <div className="glass-card rounded-xl p-4">
             <div className="flex items-center justify-between">
               <div>
                 <div className="text-sm font-medium">标记为资产消费</div>
@@ -266,6 +265,7 @@ export function AddExpense() {
         <button
           type="submit"
           disabled={saving}
+          style={{ filter: 'saturate(0.5) brightness(1.2)' }}
           className={`w-full py-3 rounded-xl font-medium text-sm active:opacity-80 disabled:opacity-50 transition-colors ${
             isExpense ? 'bg-cyan-600 text-white' : 'bg-green-600 text-white'
           }`}

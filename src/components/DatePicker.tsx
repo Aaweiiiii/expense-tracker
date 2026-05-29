@@ -11,11 +11,13 @@ interface DatePickerProps {
   value: string;
   onChange: (date: string) => void;
   availableDates?: Set<string>;
+  compact?: boolean;
+  transparent?: boolean;
 }
 
 type ActiveCol = 'year' | 'month' | 'day' | null;
 
-export function DatePicker({ value, onChange, availableDates }: DatePickerProps) {
+export function DatePicker({ value, onChange, availableDates, compact, transparent }: DatePickerProps) {
   const [active, setActive] = useState<ActiveCol>(null);
   const [y, m, d] = value.split('-').map(Number);
   const currentYear = new Date().getFullYear();
@@ -120,8 +122,12 @@ export function DatePicker({ value, onChange, availableDates }: DatePickerProps)
   }
 
   const colBtn = 'w-full py-3 rounded-xl text-center transition-colors select-none';
-  const colActive = 'bg-cyan-600/20 ring-1 ring-cyan-600/50';
-  const colInactive = 'bg-[var(--color-surface)] hover:bg-[var(--color-surface-alt)]';
+  const colActive = transparent
+    ? 'bg-cyan-600/25 ring-1 ring-cyan-600/40'
+    : 'bg-cyan-600/20 ring-1 ring-cyan-600/50';
+  const colInactive = transparent
+    ? 'bg-white/40 hover:bg-white/50'
+    : 'bg-[var(--color-surface)] hover:bg-[var(--color-surface-alt)]';
   const optionBtn = 'w-full py-2 text-sm rounded-lg transition-colors text-center';
 
   function Dropdown({ items, selected, onSelect, unit }: {
@@ -141,7 +147,7 @@ export function DatePicker({ value, onChange, availableDates }: DatePickerProps)
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     return (
-      <div className="absolute left-0 right-0 top-full mt-1 z-20 bg-[var(--color-surface-alt)] rounded-xl shadow-lg overflow-hidden">
+      <div className={`absolute left-0 right-0 top-full mt-1 z-20 rounded-xl shadow-lg overflow-hidden ${transparent ? 'bg-white/80 backdrop-blur' : 'bg-[var(--color-surface-alt)]'}`}>
         <div ref={listRef} className="overflow-y-auto scrollbar-hide" style={{ maxHeight: '200px' }}>
           <div className="py-12" />
           {items.map((v) => (
@@ -160,26 +166,85 @@ export function DatePicker({ value, onChange, availableDates }: DatePickerProps)
         {/* Fade edges */}
         <div
           className="absolute top-0 left-0 right-0 h-8 pointer-events-none z-10"
-          style={{ background: 'linear-gradient(to bottom, var(--color-surface-alt), transparent)' }}
+          style={{ background: transparent ? 'linear-gradient(to bottom, rgba(255,255,255,0.9), transparent)' : 'linear-gradient(to bottom, var(--color-surface-alt), transparent)' }}
         />
         <div
           className="pointer-events-none absolute bottom-0 left-0 right-0 h-8 z-10"
-          style={{ background: 'linear-gradient(to top, var(--color-surface-alt), transparent)' }} />
+          style={{ background: transparent ? 'linear-gradient(to top, rgba(255,255,255,0.9), transparent)' : 'linear-gradient(to top, var(--color-surface-alt), transparent)' }} />
       </div>
     );
   }
+
+  if (compact) {
+    return (
+      <div ref={containerRef} className="flex items-center gap-1.5">
+        {/* Year */}
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setActive(active === 'year' ? null : 'year')}
+            className={`px-1.5 py-1 rounded-lg text-base font-bold transition-colors ${active === 'year' ? 'bg-[var(--color-surface-alt)]/50 text-[var(--color-text)] ring-1 ring-[var(--color-border)]' : 'text-[var(--color-text)] hover:bg-[var(--color-surface-alt)]/50'}`}
+          >
+            {y}<span className="text-base font-semibold text-[var(--color-text-muted)] ml-0.5">年</span>
+          </button>
+          {active === 'year' && (
+            <Dropdown items={years} selected={y} onSelect={handleYear} unit="年" />
+          )}
+        </div>
+        {/* Month */}
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setActive(active === 'month' ? null : 'month')}
+            className={`px-1.5 py-1 rounded-lg text-base font-bold transition-colors ${active === 'month' ? 'bg-[var(--color-surface-alt)]/50 text-[var(--color-text)] ring-1 ring-[var(--color-border)]' : 'text-[var(--color-text)] hover:bg-[var(--color-surface-alt)]/50'}`}
+          >
+            {m}<span className="text-base font-semibold text-[var(--color-text-muted)] ml-0.5">月</span>
+          </button>
+          {active === 'month' && (
+            <Dropdown
+              items={months.length > 0 ? months : Array.from({ length: 12 }, (_, i) => i + 1)}
+              selected={m}
+              onSelect={handleMonth}
+              unit="月"
+            />
+          )}
+        </div>
+        {/* Day */}
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setActive(active === 'day' ? null : 'day')}
+            className={`px-1.5 py-1 rounded-lg text-base font-bold transition-colors ${active === 'day' ? 'bg-[var(--color-surface-alt)]/50 text-[var(--color-text)] ring-1 ring-[var(--color-border)]' : 'text-[var(--color-text)] hover:bg-[var(--color-surface-alt)]/50'}`}
+          >
+            {d}<span className="text-base font-semibold text-[var(--color-text-muted)] ml-0.5">日</span>
+          </button>
+          {active === 'day' && (
+            <Dropdown
+              items={days.length > 0 ? days : Array.from({ length: maxDay }, (_, i) => i + 1)}
+              selected={d}
+              onSelect={handleDay}
+              unit="日"
+            />
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  const labelCls = transparent ? 'text-xs text-[var(--color-text-muted)]' : 'text-xs text-[var(--color-text-muted)]';
+  const numCls = transparent ? 'text-xl font-bold text-[var(--color-text)]' : 'text-xl font-bold text-[var(--color-text)]';
 
   return (
     <div ref={containerRef} className="flex gap-3">
       {/* Year */}
       <div className="flex-1 flex flex-col items-center gap-1 relative">
-        <span className="text-xs text-[var(--color-text-muted)]">年</span>
+        <span className={labelCls}>年</span>
         <button
           type="button"
           onClick={() => setActive(active === 'year' ? null : 'year')}
           className={`${colBtn} ${active === 'year' ? colActive : colInactive}`}
         >
-          <span className="text-xl font-bold text-[var(--color-text)]">{y}</span>
+          <span className={numCls}>{y}</span>
         </button>
         {active === 'year' && (
           <Dropdown items={years} selected={y} onSelect={handleYear} unit="年" />
@@ -188,13 +253,13 @@ export function DatePicker({ value, onChange, availableDates }: DatePickerProps)
 
       {/* Month */}
       <div className="flex-1 flex flex-col items-center gap-1 relative">
-        <span className="text-xs text-[var(--color-text-muted)]">月</span>
+        <span className={labelCls}>月</span>
         <button
           type="button"
           onClick={() => setActive(active === 'month' ? null : 'month')}
           className={`${colBtn} ${active === 'month' ? colActive : colInactive}`}
         >
-          <span className="text-xl font-bold text-[var(--color-text)]">{m}</span>
+          <span className={numCls}>{m}</span>
         </button>
         {active === 'month' && (
           <Dropdown
@@ -208,13 +273,13 @@ export function DatePicker({ value, onChange, availableDates }: DatePickerProps)
 
       {/* Day */}
       <div className="flex-1 flex flex-col items-center gap-1 relative">
-        <span className="text-xs text-[var(--color-text-muted)]">日</span>
+        <span className={labelCls}>日</span>
         <button
           type="button"
           onClick={() => setActive(active === 'day' ? null : 'day')}
           className={`${colBtn} ${active === 'day' ? colActive : colInactive}`}
         >
-          <span className="text-xl font-bold text-[var(--color-text)]">{d}</span>
+          <span className={numCls}>{d}</span>
         </button>
         {active === 'day' && (
           <Dropdown
