@@ -2,9 +2,11 @@ import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { getAllExpenses } from '../db';
 import { getMonthStart, getMonthEnd, getMonthLabel, formatAmount, getCurrentYear, getCurrentMonth, getToday } from '../utils/format';
 import { type Expense } from '../types';
-import { EXPENSE_ICONS, OtherIcon } from '../components/Icon';
+import { EXPENSE_ICONS, INCOME_ICONS, OtherIcon, OtherIncomeIcon } from '../components/Icon';
 import { useDataRefresh } from '../hooks/useData';
 import { generateMonthlyReview, getCachedReview, setCachedReview, hasApiKey } from '../utils/ai';
+import detailIcon from '../assets/068_明细.png';
+import dataAnalysisIcon from '../assets/数据分析.png';
 
 export function Stats() {
   const [allExpenses, setAllExpenses] = useState<Expense[]>([]);
@@ -34,9 +36,12 @@ export function Stats() {
   }, [allExpenses]);
 
   // Filter for selected month
+  const monthStart = useMemo(() => getMonthStart(year, month), [year, month]);
+  const monthEnd = useMemo(() => getMonthEnd(year, month), [year, month]);
+
   const { monthExpenses, expenseTotal, incomeTotal, byCategory, dailyData } = useMemo(() => {
-    const start = getMonthStart(year, month);
-    const end = getMonthEnd(year, month);
+    const start = monthStart;
+    const end = monthEnd;
     const filtered = allExpenses.filter((e) => e.date >= start && e.date <= end);
     const expenses = filtered.filter((e) => (e.type || 'expense') === 'expense');
     const income = filtered.filter((e) => e.type === 'income');
@@ -72,6 +77,22 @@ export function Stats() {
     [byCategory]
   );
   const maxTotal = Math.max(...sortedCategories.map(([, t]) => t), 1);
+
+  // Map full date → expenses for bar-click detail
+  const dayRecordsMap = useMemo(() => {
+    const map = new Map<string, Expense[]>();
+    for (const e of allExpenses) {
+      if (e.date >= monthStart && e.date <= monthEnd) {
+        const arr = map.get(e.date) || [];
+        arr.push(e);
+        map.set(e.date, arr);
+      }
+    }
+    return map;
+  }, [allExpenses, monthStart, monthEnd]);
+
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const clickStartRef = useRef({ x: 0, y: 0 });
 
   // AI review data + cache
   const aiData = useMemo(() => {
@@ -247,8 +268,8 @@ export function Stats() {
       <div className="glass-card rounded-2xl p-5 mb-5 animate-fade-in-up">
         <div className="flex justify-between items-end">
           <div>
-            <div className="text-sm mb-1" style={{ color: '#d4a8a8' }}>本月支出</div>
-            <div className="text-4xl font-bold" style={{ color: '#d4a8a8' }}>{formatAmount(expenseTotal)}</div>
+            <div className="text-sm mb-1" style={{ color: 'var(--macaron-pink)' }}>本月支出</div>
+            <div className="text-4xl font-bold" style={{ color: 'var(--macaron-pink)' }}>{formatAmount(expenseTotal)}</div>
           </div>
           {incomeTotal > 0 && (
             <div className="text-right">
@@ -258,7 +279,7 @@ export function Stats() {
           )}
         </div>
         <div className="text-[var(--color-text-muted)] text-xs mt-2 flex justify-between">
-          <span>共 {monthExpenses.length} 笔 · 日均支出 <span style={{ color: '#d4a8a8' }}>{formatAmount(dailyData.length > 0 ? expenseTotal / dailyData.length : 0)}</span></span>
+          <span>共 {monthExpenses.length} 笔 · 日均支出 <span style={{ color: 'var(--macaron-pink)' }}>{formatAmount(dailyData.length > 0 ? expenseTotal / dailyData.length : 0)}</span></span>
           {incomeTotal > 0 && (
             <span className="text-[var(--color-text-muted)]">
               结余 <span className="text-[var(--macaron-mint)]">{formatAmount(incomeTotal - expenseTotal)}</span>
@@ -317,13 +338,23 @@ export function Stats() {
                       const barLabel = total > 0 ? String(Math.round(total)) : '';
                       const digits = barLabel.length;
                       const labelSize = digits <= 2 ? 10 : digits <= 3 ? 9 : digits <= 4 ? 8 : digits <= 5 ? 7 : 6;
+                      const isActive = selectedDate === dateStr;
                       return (
-                      <div key={date} className="relative" style={{ width: '28px', flexShrink: 0, height: '100%' }}>
+                      <div key={date} className="relative" style={{ width: '28px', flexShrink: 0, height: '100%' }}
+                        onMouseDown={(e) => { clickStartRef.current = { x: e.clientX, y: e.clientY }; }}
+                        onMouseUp={(e) => {
+                          const dx = e.clientX - clickStartRef.current.x;
+                          const dy = e.clientY - clickStartRef.current.y;
+                          if (Math.abs(dx) < 4 && Math.abs(dy) < 4) {
+                            setSelectedDate(selectedDate === dateStr ? null : dateStr);
+                          }
+                        }}
+                      >
                         {barH > 0 && (
                           <>
                             <div
-                              className="absolute left-0 right-0 rounded-t-sm"
-                              style={{ bottom: '18px', height: `${barH}px`, animation: 'growUp 0.25s ease-out both', transformOrigin: 'bottom', background: 'linear-gradient(to top, #6aaccc, #84c2e4)' }}
+                              className="absolute left-0 right-0 rounded-t-sm cursor-pointer"
+                              style={{ bottom: '18px', height: `${barH}px`, animation: 'growUp 0.25s ease-out both', transformOrigin: 'bottom', background: isActive ? 'linear-gradient(to top, #4eb8cc, #60cee8)' : 'linear-gradient(to top, #6aaccc, #84c2e4)' }}
                             />
                             <span
                               className="absolute left-0 right-0 text-center text-[var(--color-text-muted)] whitespace-nowrap"
@@ -333,7 +364,7 @@ export function Stats() {
                             </span>
                           </>
                         )}
-                        <span className={`absolute left-0 right-0 text-center text-[10px] whitespace-nowrap ${isToday ? 'text-[var(--macaron-mint)] font-medium' : 'text-[var(--color-text-faint)]'}`} style={{ bottom: 0 }}>{date}</span>
+                        <span className={`absolute left-0 right-0 text-center text-[10px] whitespace-nowrap ${isToday ? 'text-[var(--macaron-mint)] font-medium' : 'text-[var(--color-text-muted)] font-semibold'} ${isActive ? 'text-cyan-400 font-medium' : ''}`} style={{ bottom: 0 }}>{date}</span>
                       </div>
                       );
                     })}
@@ -363,6 +394,52 @@ export function Stats() {
                 <span className="text-4xl leading-none">＞</span>
               </button>
             </div>
+
+            {/* Selected Day Detail — inside chart card */}
+            {selectedDate && dayRecordsMap.has(selectedDate) && (() => {
+              const records = dayRecordsMap.get(selectedDate)!;
+              const expRecords = records.filter(e => (e.type || 'expense') === 'expense').sort((a, b) => b.amount - a.amount);
+              const incRecords = records.filter(e => e.type === 'income').sort((a, b) => b.amount - a.amount);
+              const [, sm2, sd2] = selectedDate.split('-').map(Number);
+              return (
+                <div className="mt-4 pt-4 border-t border-[var(--color-border)] animate-fade-in-up">
+                  <div className="flex items-center justify-between mb-3 px-3">
+                    <h3 className="text-sm font-medium text-[var(--color-text)]">{sm2}月{sd2}日 消费明细</h3>
+                    <button onClick={() => setSelectedDate(null)} className="text-[var(--color-text)] font-bold hover:text-[var(--color-text-faint)] text-lg leading-none">&times;</button>
+                  </div>
+                  <div className="space-y-2 px-3">
+                    {expRecords.map((e) => {
+                      const IconComp = EXPENSE_ICONS[e.category] || OtherIcon;
+                      return (
+                        <div key={e.id} className="flex items-center gap-3 bg-[var(--color-surface-alt)]/60 rounded-xl px-4 py-2.5">
+                          <IconComp size={22} className="shrink-0 text-[var(--color-text)]" />
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm truncate text-[var(--color-text)] font-medium">{e.description || e.category}</div>
+                            <div className="text-xs text-[var(--color-text-muted)]">{e.category}</div>
+                          </div>
+                          <div className="text-sm font-semibold text-[var(--color-text)]">{formatAmount(e.amount)}</div>
+                        </div>
+                      );
+                    })}
+                    {incRecords.map((e) => {
+                      const IconComp = INCOME_ICONS[e.category] || OtherIncomeIcon;
+                      return (
+                        <div key={e.id} className="flex items-center gap-3 bg-[var(--color-surface-alt)]/60 rounded-xl px-4 py-2.5">
+                          <IconComp size={22} className="shrink-0 text-[var(--color-text)]" />
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm truncate text-[var(--color-text)] font-medium">{e.description || e.category}</div>
+                            <div className="text-xs text-[var(--color-text-muted)]">
+                              <span className="text-green-400">{e.category}</span>
+                            </div>
+                          </div>
+                          <div className="text-sm font-semibold text-green-400">+{formatAmount(e.amount)}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
 
           {/* Category Breakdown */}
@@ -392,14 +469,21 @@ export function Stats() {
           {expenseTotal > 0 && (
             <div className="glass-card rounded-2xl p-5 animate-fade-in-up">
               <div className="flex items-center justify-between mb-3">
-                <h2 className="text-sm font-medium text-[var(--color-text-muted)]">💬 月度复盘</h2>
+                <h2 className="text-sm font-medium text-[var(--color-text-muted)] flex items-center gap-1.5">
+                  <span className="inline-block shrink-0" style={{ width: 16, height: 16, backgroundColor: 'currentColor', maskImage: `url(${detailIcon})`, maskSize: 'contain', maskRepeat: 'no-repeat', maskPosition: 'center', WebkitMaskImage: `url(${detailIcon})`, WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center' }} />
+                  月度复盘</h2>
                 {aiReview && hasApiKey() && (
                   <button
                     onClick={handleGenerateReview}
                     disabled={aiLoading}
-                    className="text-xs text-[var(--color-text-faint)] hover:text-[var(--macaron-mint)] transition-colors"
+                    className="text-xs text-[var(--color-text-faint)] hover:text-[var(--macaron-mint)] transition-colors inline-flex items-center gap-1"
                   >
-                    🔄 再次复盘
+                    {aiLoading ? (
+                      <span className="ai-spinner shrink-0" style={{ width: 14, height: 14, borderWidth: '1.5px' }} />
+                    ) : (
+                      <span className="inline-block shrink-0" style={{ width: 14, height: 14, backgroundColor: 'currentColor', maskImage: `url(${dataAnalysisIcon})`, maskSize: 'contain', maskRepeat: 'no-repeat', maskPosition: 'center', WebkitMaskImage: `url(${dataAnalysisIcon})`, WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center' }} />
+                    )}
+                    再次复盘
                   </button>
                 )}
               </div>
@@ -407,8 +491,8 @@ export function Stats() {
               {aiReview ? (
                 <p className="text-sm text-[var(--color-text)] leading-relaxed whitespace-pre-line">{aiReview}</p>
               ) : aiLoading ? (
-                <div className="flex items-center gap-2 text-sm text-[var(--color-text-muted)] py-4">
-                  <span className="animate-pulse">🤖</span>
+                <div className="flex items-center gap-3 text-sm text-[var(--color-text-muted)] py-4">
+                  <span className="ai-spinner" />
                   正在帮你盘点这个月...
                 </div>
               ) : aiError ? (
@@ -429,10 +513,11 @@ export function Stats() {
               ) : (
                 <button
                   onClick={handleGenerateReview}
-                  className="w-full py-3 rounded-xl text-sm font-medium transition-colors"
+                  className="w-full py-3 rounded-xl text-sm font-medium transition-colors inline-flex items-center justify-center gap-1.5"
                   style={{ background: 'rgba(126, 203, 161, 0.15)', color: 'var(--macaron-mint)' }}
                 >
-                  📊 生成本月复盘
+                  <span className="inline-block shrink-0" style={{ width: 16, height: 16, backgroundColor: 'currentColor', maskImage: `url(${dataAnalysisIcon})`, maskSize: 'contain', maskRepeat: 'no-repeat', maskPosition: 'center', WebkitMaskImage: `url(${dataAnalysisIcon})`, WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center' }} />
+                  生成本月复盘
                 </button>
               )}
             </div>

@@ -117,10 +117,6 @@ export function AddExpense() {
     }
   }
 
-  const quickAmounts = recordType === 'expense'
-    ? [10, 20, 50, 100, 200, 500]
-    : [500, 1000, 3000, 5000, 10000, 20000];
-
   const isExpense = recordType === 'expense';
 
   return (
@@ -152,43 +148,36 @@ export function AddExpense() {
           </button>
         </div>
 
-        {/* Date */}
-        <div className="glass-card rounded-xl p-4 relative z-10">
-          <DatePicker value={date} onChange={setDate} />
-        </div>
-
-        {/* Amount */}
-        <div>
-          <label className="text-sm text-[var(--color-text-muted)] block mb-2">金额</label>
-          <div className="glass-card rounded-xl px-4 py-3 flex items-center gap-2">
-            <span className={`font-bold text-xl ${isExpense ? 'text-cyan-400' : 'text-green-400'}`}>¥</span>
-            <input
-              type="number"
-              step="0.01"
-              inputMode="decimal"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="0.00"
-              className="flex-1 bg-transparent text-2xl font-bold outline-none placeholder-[var(--color-text-faint)]"
-              required
-            />
+        {/* Date + Amount + Category — merged card */}
+        <div className="glass-card rounded-xl p-4 space-y-4 relative z-10">
+          {/* Date */}
+          <div>
+            <label className="text-sm text-[var(--color-text-muted)] block mb-2">日期</label>
+            <DatePicker value={date} onChange={setDate} />
           </div>
-          <div className="flex flex-wrap gap-2 mt-2">
-            {quickAmounts.map((n) => (
-              <button
-                key={n}
-                type="button"
-                onClick={() => setAmount(String(n))}
-                className="bg-[var(--color-surface)] text-[var(--color-text-muted)] px-3 py-1 rounded-lg text-sm active:bg-[var(--color-surface-alt)] transition-all duration-200 active:scale-[0.97]"
-              >
-                ¥{n}
-              </button>
-            ))}
-          </div>
-        </div>
 
-        {/* Category + Description */}
-        <div className="glass-card rounded-xl p-4 space-y-4">
+          {/* Amount */}
+          <div>
+            <label className="text-sm text-[var(--color-text-muted)] block mb-2">金额</label>
+            <div className="flex items-center gap-2 bg-[var(--color-surface-alt)] rounded-xl px-4 py-3">
+              <span className={`font-bold text-xl ${isExpense ? 'text-cyan-400' : 'text-green-400'}`}>¥</span>
+              <input
+                type="number"
+                step="0.01"
+                inputMode="decimal"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="0.00"
+                className="flex-1 bg-transparent text-2xl font-bold text-[var(--color-text)] outline-none placeholder-[var(--color-text-faint)] no-spinner"
+                required
+              />
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div className="border-t border-[var(--color-border)]" />
+
+          {/* Category */}
           <div>
             <label className="text-sm text-[var(--color-text-muted)] block mb-2">分类</label>
             <div className="grid grid-cols-5 gap-2">
@@ -200,8 +189,8 @@ export function AddExpense() {
                   className={`flex flex-col items-center gap-1 p-2 rounded-xl text-xs transition-colors ${
                     category === cat
                       ? isExpense
-                        ? 'bg-cyan-600/20 text-cyan-400 ring-1 ring-cyan-600/50'
-                        : 'bg-green-600/20 text-green-400 ring-1 ring-green-600/50'
+                        ? 'bg-cyan-600 text-white ring-1 ring-cyan-600'
+                        : 'bg-green-600 text-white ring-1 ring-green-600'
                       : 'bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] hover:opacity-80'
                   }`}
                 >
@@ -211,6 +200,8 @@ export function AddExpense() {
               ))}
             </div>
           </div>
+
+          {/* Description */}
           <div>
             <label className="text-sm text-[var(--color-text-muted)] block mb-2">描述（可选）</label>
             <input

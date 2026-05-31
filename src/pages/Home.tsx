@@ -323,18 +323,19 @@ export function Home() {
   // Format selected date for display
   const [, sm, sd] = selectedDate.split('-').map(Number);
 
-  const recordItem = (expense: Expense) => {
+  const recordItem = (expense: Expense, index: number, total: number) => {
     const isIncome = expense.type === 'income';
     const isEditing = editingId === expense.id;
+    const zIdx = isEditing ? 100 : total - index;
 
     if (isEditing) {
       const cats = editType === 'expense' ? EXPENSE_CATEGORIES : INCOME_CATEGORIES;
       const catIcons = editType === 'expense' ? EXPENSE_ICONS : INCOME_ICONS;
       const isExpense = editType === 'expense';
       return (
-        <div key={expense.id} className="glass-card rounded-xl p-4 space-y-3">
+        <div key={expense.id} className="glass-card rounded-xl p-4 space-y-3" style={{ zIndex: zIdx }}>
           {/* Type toggle */}
-          <div className="bg-white/30 rounded-lg p-0.5 flex">
+          <div className="bg-[var(--color-surface-alt)]/60 rounded-lg p-0.5 flex">
             <button
               type="button"
               onClick={() => setEditType('expense')}
@@ -353,7 +354,7 @@ export function Home() {
               type="number" step="0.01" inputMode="decimal"
               value={editAmount}
               onChange={(e) => setEditAmount(e.target.value)}
-              className="flex-1 bg-white/40 rounded-lg px-3 py-2 text-lg font-bold text-[var(--color-text)] outline-none focus:ring-1 focus:ring-cyan-600"
+              className="flex-1 bg-[var(--color-surface-alt)]/60 rounded-lg px-3 py-2 text-lg font-bold text-[var(--color-text)] outline-none focus:ring-1 focus:ring-cyan-600 no-spinner"
             />
           </div>
           {/* Category */}
@@ -366,7 +367,7 @@ export function Home() {
                 className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold transition-colors ${
                   editCategory === cat
                     ? 'bg-cyan-600/25 text-[var(--color-text)] ring-1 ring-cyan-600/40'
-                    : 'bg-white/40 text-[var(--color-text)]'
+                    : 'bg-[var(--color-surface-alt)]/60 text-[var(--color-text)]'
                 }`}
               >
                 {(() => { const CI = catIcons[cat]; return <CI size={16} />; })()}
@@ -380,13 +381,13 @@ export function Home() {
             value={editDesc}
             onChange={(e) => setEditDesc(e.target.value)}
             placeholder="描述"
-            className="w-full bg-white/40 rounded-lg px-3 py-2 text-sm font-semibold text-[var(--color-text)] outline-none focus:ring-1 focus:ring-cyan-600 placeholder-[var(--color-text-faint)]"
+            className="w-full bg-[var(--color-surface-alt)]/60 rounded-lg px-3 py-2 text-sm font-semibold text-[var(--color-text)] outline-none focus:ring-1 focus:ring-cyan-600 placeholder-[var(--color-text-faint)]"
           />
           {/* Date */}
           <DatePicker value={editDate} onChange={setEditDate} transparent />
           {/* Asset toggle */}
           {isExpense && (
-            <div className="bg-white/30 rounded-lg p-3">
+            <div className="bg-[var(--color-surface-alt)]/60 rounded-lg p-3">
               <div className="flex items-center justify-between">
                 <div>
                   <div className="text-xs font-semibold text-[var(--color-text)]">标记为资产消费</div>
@@ -421,7 +422,7 @@ export function Home() {
             >{editSaving ? '保存中...' : '保存'}</button>
             <button
               onClick={cancelEdit}
-              className="flex-1 py-2 rounded-lg text-sm font-semibold text-[var(--color-text)] bg-white/40 active:bg-white/50"
+              className="flex-1 py-2 rounded-lg text-sm font-semibold text-[var(--color-text)] bg-[var(--color-surface-alt)]/60 active:bg-[var(--color-surface-alt)]"
             >取消</button>
           </div>
         </div>
@@ -434,7 +435,8 @@ export function Home() {
     return (
       <div
         key={expense.id}
-        className="flex items-center gap-3 glass-card rounded-xl px-4 py-3 active:scale-[0.98] transition-all duration-200"
+        style={{ zIndex: zIdx }}
+        className="flex items-center gap-2 glass-card rounded-xl px-3 py-2 hover:scale-[1.03] hover:relative hover:z-30 hover:shadow-lg active:scale-[0.98] transition-all duration-200"
       >
         <IconComp size={24} className="shrink-0 text-[var(--color-text)]" />
         <div className="flex-1 min-w-0">
@@ -451,9 +453,6 @@ export function Home() {
               </span>
             )}
           </div>
-          {expense.subcategory && (
-            <div className="text-xs text-[var(--color-text-muted)]">{expense.subcategory}</div>
-          )}
           {!isIncome && expense.isBigPurchase && (
             <div className="text-xs text-[var(--color-text-muted)]">
               预计使用 {expense.lifespanYears ? formatLifespan(expense.lifespanYears) : '未设置'}
@@ -464,9 +463,6 @@ export function Home() {
           <div className={`font-semibold text-[var(--color-text)]`}>
             {isIncome ? '+' : ''}{formatAmount(expense.amount)}
           </div>
-          {expense.tags && expense.tags.length > 0 && (
-            <div className="text-xs text-[var(--color-text-muted)]">{expense.tags[0]}</div>
-          )}
         </div>
         <button
           onClick={(e) => { e.stopPropagation(); startEdit(expense); }}
@@ -566,7 +562,7 @@ export function Home() {
       </div>
 
       {/* Records List */}
-      <div className="space-y-2 stagger-children">
+      <div className="space-y-[-6px] stagger-children">
         {loading ? (
           <div className="space-y-2">
             {[1, 2, 3].map((i) => (
@@ -596,7 +592,7 @@ export function Home() {
             </button>
           </div>
         ) : (
-          dayRecords.map(recordItem)
+          dayRecords.map((e, i) => recordItem(e, i, dayRecords.length))
         )}
 
         {/* Daily Review */}
@@ -612,7 +608,12 @@ export function Home() {
                   disabled={dailyReviewLoading}
                   className="text-xs text-[var(--color-text-faint)] hover:text-cyan-400 transition-colors inline-flex items-center gap-1"
                 >
-                  <span className="inline-block shrink-0 align-text-bottom" style={{ width: 13, height: 13, backgroundColor: 'currentColor', maskImage: `url(${refreshIcon})`, maskSize: 'contain', maskRepeat: 'no-repeat', maskPosition: 'center', WebkitMaskImage: `url(${refreshIcon})`, WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center' }} /> 再次复盘
+                  {dailyReviewLoading ? (
+                    <span className="ai-spinner shrink-0" style={{ width: 13, height: 13, borderWidth: '1.5px' }} />
+                  ) : (
+                    <span className="inline-block shrink-0 align-text-bottom" style={{ width: 13, height: 13, backgroundColor: 'currentColor', maskImage: `url(${refreshIcon})`, maskSize: 'contain', maskRepeat: 'no-repeat', maskPosition: 'center', WebkitMaskImage: `url(${refreshIcon})`, WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center' }} />
+                  )}
+                  再次复盘
                 </button>
               )}
             </div>
@@ -620,8 +621,8 @@ export function Home() {
             {dailyReview ? (
               <p className="text-sm text-[var(--color-text)] leading-relaxed whitespace-pre-line">{dailyReview}</p>
             ) : dailyReviewLoading ? (
-              <div className="flex items-center gap-2 text-sm text-[var(--color-text-muted)] py-4">
-                <span className="animate-pulse">🧠</span>
+              <div className="flex items-center gap-3 text-sm text-[var(--color-text-muted)] py-4">
+                <span className="ai-spinner" />
                 正在分析今日消费...
               </div>
             ) : dailyReviewError ? (

@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect, useLayoutEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 
 interface LifespanPickerProps {
   years: number;
@@ -25,12 +26,17 @@ export function LifespanPicker({ years, months, onYearsChange, onMonthsChange }:
   }, []);
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const yearBtnRef = useRef<HTMLButtonElement>(null);
+  const monthBtnRef = useRef<HTMLButtonElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!active) return;
     function handleClick(e: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setActive(null);
+        if (!dropdownRef.current?.contains(e.target as Node)) {
+          setActive(null);
+        }
       }
     }
     document.addEventListener('mousedown', handleClick);
@@ -52,13 +58,30 @@ export function LifespanPicker({ years, months, onYearsChange, onMonthsChange }:
   const colInactive = 'bg-[var(--color-surface-alt)] hover:bg-[var(--color-surface-alt)]';
   const optionBtn = 'w-full py-2 text-sm rounded-lg transition-colors text-center';
 
-  function Dropdown({ items, selected, onSelect, unit }: {
+  function Dropdown({ triggerRef, items, selected, onSelect, unit }: {
+    triggerRef: React.RefObject<HTMLButtonElement | null>;
     items: number[];
     selected: number;
     onSelect: (v: number) => void;
     unit: string;
   }) {
     const listRef = useRef<HTMLDivElement>(null);
+    const [pos, setPos] = useState({ bottom: 0, left: 0, width: 0 });
+
+    useLayoutEffect(() => {
+      function update() {
+        if (!triggerRef.current) return;
+        const rect = triggerRef.current.getBoundingClientRect();
+        setPos({ bottom: window.innerHeight - rect.top + 4, left: rect.left, width: rect.width });
+      }
+      update();
+      window.addEventListener('resize', update);
+      window.addEventListener('scroll', update, true);
+      return () => {
+        window.removeEventListener('resize', update);
+        window.removeEventListener('scroll', update, true);
+      };
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {
       if (!listRef.current) return;
@@ -72,8 +95,12 @@ export function LifespanPicker({ years, months, onYearsChange, onMonthsChange }:
       }
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-    return (
-      <div className="absolute left-0 right-0 bottom-full mb-1 z-20 bg-[var(--color-surface-alt)] rounded-xl shadow-lg overflow-hidden">
+    return createPortal(
+      <div
+        ref={dropdownRef}
+        className="fixed z-[9999] bg-[var(--color-surface-alt)] rounded-xl shadow-lg overflow-hidden"
+        style={{ bottom: pos.bottom, left: pos.left, width: pos.width || undefined }}
+      >
         <div ref={listRef} className="overflow-y-auto scrollbar-hide" style={{ maxHeight: '200px' }}>
           <div className="py-1" />
           {items.map((v) => (
@@ -93,7 +120,8 @@ export function LifespanPicker({ years, months, onYearsChange, onMonthsChange }:
           style={{ background: 'linear-gradient(to bottom, var(--color-surface-alt), transparent)' }} />
         <div className="absolute bottom-0 left-0 right-0 h-8 pointer-events-none z-10"
           style={{ background: 'linear-gradient(to top, var(--color-surface-alt), transparent)' }} />
-      </div>
+      </div>,
+      document.body
     );
   }
 
@@ -104,13 +132,14 @@ export function LifespanPicker({ years, months, onYearsChange, onMonthsChange }:
         <span className="text-xs text-[var(--color-text-muted)]">年</span>
         <button
           type="button"
+          ref={yearBtnRef}
           onClick={() => setActive(active === 'year' ? null : 'year')}
           className={`${colBtn} ${active === 'year' ? colActive : colInactive}`}
         >
           <span className="text-xl font-bold text-[var(--color-text)]">{years}</span>
         </button>
         {active === 'year' && (
-          <Dropdown items={yearOptions} selected={years} onSelect={handleYear} unit="年" />
+          <Dropdown triggerRef={yearBtnRef} items={yearOptions} selected={years} onSelect={handleYear} unit="年" />
         )}
       </div>
 
@@ -119,13 +148,14 @@ export function LifespanPicker({ years, months, onYearsChange, onMonthsChange }:
         <span className="text-xs text-[var(--color-text-muted)]">月</span>
         <button
           type="button"
+          ref={monthBtnRef}
           onClick={() => setActive(active === 'month' ? null : 'month')}
           className={`${colBtn} ${active === 'month' ? colActive : colInactive}`}
         >
           <span className="text-xl font-bold text-[var(--color-text)]">{months}</span>
         </button>
         {active === 'month' && (
-          <Dropdown items={monthOptions} selected={months} onSelect={handleMonth} unit="月" />
+          <Dropdown triggerRef={monthBtnRef} items={monthOptions} selected={months} onSelect={handleMonth} unit="月" />
         )}
       </div>
     </div>

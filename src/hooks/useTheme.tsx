@@ -18,6 +18,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
     localStorage.setItem('theme', theme);
+    // Dynamically update Android status bar / Chrome toolbar color to match background
+    const meta = document.getElementById('theme-color-meta');
+    if (meta) {
+      meta.setAttribute('content', theme === 'dark' ? '#162336' : '#b0cfdc');
+    }
   }, [theme]);
 
   function toggle() {

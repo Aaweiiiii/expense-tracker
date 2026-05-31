@@ -22,7 +22,10 @@ export function Layout() {
       <main className={`mx-auto max-w-lg px-4 pt-4 ${isAddPage ? '' : 'pb-4'}`}>
         <Outlet />
       </main>
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-[var(--color-surface)]/95 backdrop-blur border-t border-[var(--color-border)]">
+      <nav
+        className="fixed bottom-0 left-0 right-0 z-50 bg-[var(--color-surface)]/95 backdrop-blur border-t border-[var(--color-border)]"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+      >
         <div className="mx-auto max-w-lg flex justify-around py-2">
           {tabs.map(({ to, Icon, label }) => (
             <NavLink

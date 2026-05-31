@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
-import { getAllExpenses, addExpense, updateExpense, db } from '../db';
+import { getAllExpenses, addExpense, db } from '../db';
 import type { Expense } from '../types';
 import { useDataRefresh } from '../hooks/useData';
 import { useTheme } from '../hooks/useTheme';
@@ -31,9 +31,6 @@ export function Settings() {
       const locals = await getAllExpenses();
       const result = await syncExpenses(
         locals,
-        async (expense, cloudId) => {
-          if (expense.id) await updateExpense(expense.id, { cloudId } as Partial<Expense>);
-        },
         async (expense) => {
           await addExpense({ ...expense, isBigPurchase: expense.isBigPurchase || false });
         },

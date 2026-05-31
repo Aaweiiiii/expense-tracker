@@ -5,14 +5,6 @@ const SYNC_TOKEN_KEY = 'sync_token';
 
 // Store data as a GitHub Gist (free, no backend needed)
 
-export async function initCloud(): Promise<boolean> {
-  return true; // GitHub API always available
-}
-
-export function getInitError(): string | null {
-  return null;
-}
-
 let gistId: string | null = localStorage.getItem(GIST_ID_KEY);
 let syncToken: string | null = localStorage.getItem(SYNC_TOKEN_KEY);
 
@@ -79,7 +71,7 @@ async function findOrCreateGist(filename: string, content: string): Promise<stri
 export async function uploadAllExpenses(expenses: Expense[]): Promise<void> {
   if (!syncToken) throw new Error('no token');
 
-  const clean = expenses.map(({ id, cloudId, ...rest }) => rest);
+  const clean = expenses.map(({ id, ...rest }) => rest);
   const content = JSON.stringify(clean);
   const filename = 'expenses.json';
   const id = await findOrCreateGist(filename, content);
@@ -125,7 +117,6 @@ export async function downloadAllExpenses(): Promise<Expense[]> {
 
 export async function syncExpenses(
   localExpenses: Expense[],
-  _onUploaded: (expense: Expense, cloudId: string) => Promise<void>,
   onNewLocal: (expense: Expense) => Promise<void>,
 ): Promise<{ uploaded: number; downloaded: number }> {
   const cloudExpenses = await downloadAllExpenses();

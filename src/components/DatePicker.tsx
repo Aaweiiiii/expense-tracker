@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect, useLayoutEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 
 function daysInMonth(year: number, month: number): number {
   if ([1, 3, 5, 7, 8, 10, 12].includes(month)) return 31;
@@ -63,12 +64,18 @@ export function DatePicker({ value, onChange, availableDates, compact, transpare
   }, [availableDates, y, m, maxDay]);
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const yearBtnRef = useRef<HTMLButtonElement>(null);
+  const monthBtnRef = useRef<HTMLButtonElement>(null);
+  const dayBtnRef = useRef<HTMLButtonElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!active) return;
     function handleClick(e: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setActive(null);
+        if (!dropdownRef.current?.contains(e.target as Node)) {
+          setActive(null);
+        }
       }
     }
     document.addEventListener('mousedown', handleClick);
@@ -126,17 +133,34 @@ export function DatePicker({ value, onChange, availableDates, compact, transpare
     ? 'bg-cyan-600/25 ring-1 ring-cyan-600/40'
     : 'bg-cyan-600/20 ring-1 ring-cyan-600/50';
   const colInactive = transparent
-    ? 'bg-white/40 hover:bg-white/50'
+    ? 'bg-[var(--color-surface-alt)]/70 hover:bg-[var(--color-surface-alt)]'
     : 'bg-[var(--color-surface)] hover:bg-[var(--color-surface-alt)]';
   const optionBtn = 'w-full py-2 text-sm rounded-lg transition-colors text-center';
 
-  function Dropdown({ items, selected, onSelect, unit }: {
+  function Dropdown({ triggerRef, items, selected, onSelect, unit }: {
+    triggerRef: React.RefObject<HTMLButtonElement | null>;
     items: number[];
     selected: number;
     onSelect: (v: number) => void;
     unit: string;
   }) {
     const listRef = useRef<HTMLDivElement>(null);
+    const [pos, setPos] = useState({ top: 0, left: 0, width: 0 });
+
+    useLayoutEffect(() => {
+      function update() {
+        if (!triggerRef.current) return;
+        const rect = triggerRef.current.getBoundingClientRect();
+        setPos({ top: rect.bottom + 4, left: rect.left, width: rect.width });
+      }
+      update();
+      window.addEventListener('resize', update);
+      window.addEventListener('scroll', update, true);
+      return () => {
+        window.removeEventListener('resize', update);
+        window.removeEventListener('scroll', update, true);
+      };
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {
       if (!listRef.current) return;
@@ -146,8 +170,16 @@ export function DatePicker({ value, onChange, availableDates, compact, transpare
       }
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-    return (
-      <div className={`absolute left-0 right-0 top-full mt-1 z-20 rounded-xl shadow-lg overflow-hidden ${transparent ? 'bg-white/80 backdrop-blur' : 'bg-[var(--color-surface-alt)]'}`}>
+    const bg = 'bg-[var(--color-surface-alt)]';
+    const fadeTop = 'linear-gradient(to bottom, var(--color-surface-alt), transparent)';
+    const fadeBot = 'linear-gradient(to top, var(--color-surface-alt), transparent)';
+
+    return createPortal(
+      <div
+        ref={dropdownRef}
+        className={`fixed z-[9999] rounded-xl shadow-lg overflow-hidden ${bg}`}
+        style={{ top: pos.top, left: pos.left, width: pos.width || undefined }}
+      >
         <div ref={listRef} className="overflow-y-auto scrollbar-hide" style={{ maxHeight: '200px' }}>
           <div className="py-12" />
           {items.map((v) => (
@@ -166,12 +198,14 @@ export function DatePicker({ value, onChange, availableDates, compact, transpare
         {/* Fade edges */}
         <div
           className="absolute top-0 left-0 right-0 h-8 pointer-events-none z-10"
-          style={{ background: transparent ? 'linear-gradient(to bottom, rgba(255,255,255,0.9), transparent)' : 'linear-gradient(to bottom, var(--color-surface-alt), transparent)' }}
+          style={{ background: fadeTop }}
         />
         <div
           className="pointer-events-none absolute bottom-0 left-0 right-0 h-8 z-10"
-          style={{ background: transparent ? 'linear-gradient(to top, rgba(255,255,255,0.9), transparent)' : 'linear-gradient(to top, var(--color-surface-alt), transparent)' }} />
-      </div>
+          style={{ background: fadeBot }}
+        />
+      </div>,
+      document.body
     );
   }
 
@@ -182,19 +216,21 @@ export function DatePicker({ value, onChange, availableDates, compact, transpare
         <div className="relative">
           <button
             type="button"
+            ref={yearBtnRef}
             onClick={() => setActive(active === 'year' ? null : 'year')}
             className={`px-1.5 py-1 rounded-lg text-base font-bold transition-colors ${active === 'year' ? 'bg-[var(--color-surface-alt)]/50 text-[var(--color-text)] ring-1 ring-[var(--color-border)]' : 'text-[var(--color-text)] hover:bg-[var(--color-surface-alt)]/50'}`}
           >
             {y}<span className="text-base font-semibold text-[var(--color-text-muted)] ml-0.5">年</span>
           </button>
           {active === 'year' && (
-            <Dropdown items={years} selected={y} onSelect={handleYear} unit="年" />
+            <Dropdown triggerRef={yearBtnRef} items={years} selected={y} onSelect={handleYear} unit="年" />
           )}
         </div>
         {/* Month */}
         <div className="relative">
           <button
             type="button"
+            ref={monthBtnRef}
             onClick={() => setActive(active === 'month' ? null : 'month')}
             className={`px-1.5 py-1 rounded-lg text-base font-bold transition-colors ${active === 'month' ? 'bg-[var(--color-surface-alt)]/50 text-[var(--color-text)] ring-1 ring-[var(--color-border)]' : 'text-[var(--color-text)] hover:bg-[var(--color-surface-alt)]/50'}`}
           >
@@ -202,6 +238,7 @@ export function DatePicker({ value, onChange, availableDates, compact, transpare
           </button>
           {active === 'month' && (
             <Dropdown
+              triggerRef={monthBtnRef}
               items={months.length > 0 ? months : Array.from({ length: 12 }, (_, i) => i + 1)}
               selected={m}
               onSelect={handleMonth}
@@ -213,6 +250,7 @@ export function DatePicker({ value, onChange, availableDates, compact, transpare
         <div className="relative">
           <button
             type="button"
+            ref={dayBtnRef}
             onClick={() => setActive(active === 'day' ? null : 'day')}
             className={`px-1.5 py-1 rounded-lg text-base font-bold transition-colors ${active === 'day' ? 'bg-[var(--color-surface-alt)]/50 text-[var(--color-text)] ring-1 ring-[var(--color-border)]' : 'text-[var(--color-text)] hover:bg-[var(--color-surface-alt)]/50'}`}
           >
@@ -220,6 +258,7 @@ export function DatePicker({ value, onChange, availableDates, compact, transpare
           </button>
           {active === 'day' && (
             <Dropdown
+              triggerRef={dayBtnRef}
               items={days.length > 0 ? days : Array.from({ length: maxDay }, (_, i) => i + 1)}
               selected={d}
               onSelect={handleDay}
@@ -241,13 +280,14 @@ export function DatePicker({ value, onChange, availableDates, compact, transpare
         <span className={labelCls}>年</span>
         <button
           type="button"
+          ref={yearBtnRef}
           onClick={() => setActive(active === 'year' ? null : 'year')}
           className={`${colBtn} ${active === 'year' ? colActive : colInactive}`}
         >
           <span className={numCls}>{y}</span>
         </button>
         {active === 'year' && (
-          <Dropdown items={years} selected={y} onSelect={handleYear} unit="年" />
+          <Dropdown triggerRef={yearBtnRef} items={years} selected={y} onSelect={handleYear} unit="年" />
         )}
       </div>
 
@@ -256,6 +296,7 @@ export function DatePicker({ value, onChange, availableDates, compact, transpare
         <span className={labelCls}>月</span>
         <button
           type="button"
+          ref={monthBtnRef}
           onClick={() => setActive(active === 'month' ? null : 'month')}
           className={`${colBtn} ${active === 'month' ? colActive : colInactive}`}
         >
@@ -263,6 +304,7 @@ export function DatePicker({ value, onChange, availableDates, compact, transpare
         </button>
         {active === 'month' && (
           <Dropdown
+            triggerRef={monthBtnRef}
             items={months.length > 0 ? months : Array.from({ length: 12 }, (_, i) => i + 1)}
             selected={m}
             onSelect={handleMonth}
@@ -276,6 +318,7 @@ export function DatePicker({ value, onChange, availableDates, compact, transpare
         <span className={labelCls}>日</span>
         <button
           type="button"
+          ref={dayBtnRef}
           onClick={() => setActive(active === 'day' ? null : 'day')}
           className={`${colBtn} ${active === 'day' ? colActive : colInactive}`}
         >
@@ -283,6 +326,7 @@ export function DatePicker({ value, onChange, availableDates, compact, transpare
         </button>
         {active === 'day' && (
           <Dropdown
+            triggerRef={dayBtnRef}
             items={days.length > 0 ? days : Array.from({ length: maxDay }, (_, i) => i + 1)}
             selected={d}
             onSelect={handleDay}

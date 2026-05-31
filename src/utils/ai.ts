@@ -121,34 +121,34 @@ export async function generateDailyReview(data: DailyData): Promise<string> {
 
   const hasRecords = data.recordCount > 0;
 
-  const prompt = `你是专业的个人财务分析师。用户的名字是「${name}」，请在复盘时用这个名字称呼用户。根据以下单日消费数据做简短复盘（不超过120字），只关注当天的支出情况。
+  const prompt = `你是用户的记账伙伴。用户的名字是「${name}」。根据以下数据做一个今日消费小结（不超过150字）。要有信息量，不能只是复述数据。
 
-数据：
-- 日期：${y}年${parseInt(m)}月${parseInt(d)}日
-- 当日支出 ¥${data.expenseTotal.toFixed(0)}，共 ${data.recordCount} 笔
-${data.items.length > 0 ? `- 支出明细：\n${expenseBlock}` : ''}
-${haveIncome ? `- 当日有收入：\n${incomeBlock}` : ''}
-${!hasRecords ? '\n注意：今天还没有任何消费记录。' : ''}
+${y}年${parseInt(m)}月${parseInt(d)}日
+支出 ¥${data.expenseTotal.toFixed(0)}，${data.recordCount} 笔
+${data.items.length > 0 ? `${expenseBlock}` : ''}
+${haveIncome ? `收入：\n${incomeBlock}` : ''}
+${!hasRecords ? '今天没有消费记录。' : ''}
 
-要求：
 ${!hasRecords
-  ? '1. 今天还没有消费记录，用一句温暖简短的话肯定这种"无支出日"\n2. 聊聊零消费日对财务健康的意义（20字内）'
-  : `1. 一句话点评当日消费
-2. 如果当日有大额支出，指出并关联类别
-3. 如果当日没有消费，肯定这种克制
-${haveIncome ? '4. 如果当日有工资、兼职等劳动收入，用温暖的语气肯定一下，比如"今天的努力得到了回报，值得开心"' : ''}`
+  ? '今天没有消费，简单肯定这种节奏即可。'
+  : `结构参考：
+1. 概括今日支出（例如：笔数少但金额大 / 多笔小额 / 有固定支出 / 某类占比突出）
+2. 点出值得关注的消费特征，比如"这笔支出在日常餐饮中属于较高水平"或"今天以日常消费为主、节奏正常"——观察事实，不做价值判断
+3. 如果只有单笔支出，可以把它放在用户整体记账习惯中做一个中性参照，例如"单日单笔大额在记账记录里并不常见，值得留下一笔"
+${haveIncome ? '4. 有收入的话，简要对比收支' : ''}`
 }
 
-规则：
-- 不要提"没有收入"，大部分日子本就没有入账，这是正常的
-- 不要分析月度趋势或累计数据，只聊今天
+约束：
+- 不揣测消费动机（不猜测"为什么花"）
+- 不说教（不用"建议""应该""可以留意""下次注意"）
+- 不评判（不用"合理/不合理""好/不好"）
 
-直接输出复盘，不要加标题或署名。`;
+直接输出，不要标题和署名。`;
 
   const response = await client.chat.completions.create({
     model: 'deepseek-chat',
     messages: [
-      { role: 'system', content: '你是专业的个人财务分析师，语气温和有人情味，用用户的名字称呼他们。回复不超过120字。' },
+      { role: 'system', content: '你是用户的记账伙伴，语气平和自然、不轻浮不油腻。用用户的名字称呼他们。回复不超过150字。' },
       { role: 'user', content: prompt },
     ],
     temperature: 0.7,

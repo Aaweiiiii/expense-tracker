@@ -48,11 +48,6 @@ export function getMonthLabel(year: number, month: number): string {
   return `${year}年${month}月`;
 }
 
-export function formatShortDate(dateStr: string): string {
-  const parts = dateStr.split('-');
-  return `${parseInt(parts[1])}/${parseInt(parts[2])}`;
-}
-
 export function formatLifespan(years: number): string {
   const y = Math.floor(years);
   const m = Math.round((years - y) * 12);
