@@ -509,7 +509,7 @@ export function Home() {
                 title="回到今日"
               >
                 <span
-                  className="inline-block align-middle"
+                  className="inline-block align-middle gpu-mask"
                   style={{
                     width: 17,
                     height: 17,
@@ -579,7 +579,7 @@ export function Home() {
         ) : dayRecords.length === 0 ? (
           <div className="text-center py-16">
             <div className="mb-4 flex justify-center">
-              <span className="inline-block text-[#4b5563] dark:text-[var(--color-text-faint)]" style={{ width: 56, height: 56, backgroundColor: 'currentColor', maskImage: `url(${recordIcon})`, maskSize: 'contain', maskRepeat: 'no-repeat', maskPosition: 'center', WebkitMaskImage: `url(${recordIcon})`, WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center' }} />
+              <span className="inline-block text-[#4b5563] dark:text-[var(--color-text-faint)] gpu-mask" style={{ width: 56, height: 56, backgroundColor: 'currentColor', maskImage: `url(${recordIcon})`, maskSize: 'contain', maskRepeat: 'no-repeat', maskPosition: 'center', WebkitMaskImage: `url(${recordIcon})`, WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center' }} />
             </div>
             <div className="text-[#4b5563] dark:text-[var(--color-text-muted)]">
               {sm}月{sd}日暂无记录
@@ -600,7 +600,7 @@ export function Home() {
           <div className="glass-card rounded-2xl p-5 mt-4 animate-fade-in-up">
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-sm font-medium text-[var(--color-text-muted)] flex items-center gap-1.5">
-                <span className="inline-block shrink-0" style={{ width: 16, height: 16, backgroundColor: 'currentColor', maskImage: `url(${dataAnalysisIcon})`, maskSize: 'contain', maskRepeat: 'no-repeat', maskPosition: 'center', WebkitMaskImage: `url(${dataAnalysisIcon})`, WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center' }} />
+                <span className="inline-block shrink-0 gpu-mask" style={{ width: 16, height: 16, backgroundColor: 'currentColor', maskImage: `url(${dataAnalysisIcon})`, maskSize: 'contain', maskRepeat: 'no-repeat', maskPosition: 'center', WebkitMaskImage: `url(${dataAnalysisIcon})`, WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center' }} />
                 本日复盘</h2>
               {dailyReview && hasApiKey() && (
                 <button
@@ -611,7 +611,7 @@ export function Home() {
                   {dailyReviewLoading ? (
                     <span className="ai-spinner shrink-0" style={{ width: 13, height: 13, borderWidth: '1.5px' }} />
                   ) : (
-                    <span className="inline-block shrink-0 align-text-bottom" style={{ width: 13, height: 13, backgroundColor: 'currentColor', maskImage: `url(${refreshIcon})`, maskSize: 'contain', maskRepeat: 'no-repeat', maskPosition: 'center', WebkitMaskImage: `url(${refreshIcon})`, WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center' }} />
+                    <span className="inline-block shrink-0 align-text-bottom gpu-mask" style={{ width: 13, height: 13, backgroundColor: 'currentColor', maskImage: `url(${refreshIcon})`, maskSize: 'contain', maskRepeat: 'no-repeat', maskPosition: 'center', WebkitMaskImage: `url(${refreshIcon})`, WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center' }} />
                   )}
                   再次复盘
                 </button>
@@ -639,7 +639,7 @@ export function Home() {
                 onClick={handleGenerateDailyReview}
                 className="w-full py-3 rounded-xl text-sm font-medium bg-cyan-600/10 text-cyan-400 hover:bg-cyan-600/20 active:bg-cyan-600/30 transition-colors inline-flex items-center justify-center gap-1.5"
               >
-                <span className="inline-block shrink-0" style={{ width: 16, height: 16, backgroundColor: 'currentColor', maskImage: `url(${dataAnalysisIcon})`, maskSize: 'contain', maskRepeat: 'no-repeat', maskPosition: 'center', WebkitMaskImage: `url(${dataAnalysisIcon})`, WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center' }} />
+                <span className="inline-block shrink-0 gpu-mask" style={{ width: 16, height: 16, backgroundColor: 'currentColor', maskImage: `url(${dataAnalysisIcon})`, maskSize: 'contain', maskRepeat: 'no-repeat', maskPosition: 'center', WebkitMaskImage: `url(${dataAnalysisIcon})`, WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center' }} />
                 生成本日复盘
               </button>
             )}

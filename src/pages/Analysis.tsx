@@ -521,7 +521,7 @@ export function Analysis() {
                     <div className="flex-1 h-full flex items-center">
                       <div
                         className="h-7 rounded-r-md flex items-center justify-end pr-2 transition-all min-w-[4px]"
-                        style={{ width: pct + '%', background: colors[i % colors.length] }}
+                        style={{ width: pct + '%', background: colors[i % colors.length], animation: 'growRight 0.35s ease-out both', transformOrigin: 'left' }}
                       >
                         {pct > 20 && (
                           <span className="text-white text-xs font-semibold whitespace-nowrap drop-shadow-sm">

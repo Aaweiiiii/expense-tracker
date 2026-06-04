@@ -49,6 +49,7 @@ function PngIcon(src: string) {
           display: 'inline-block',
           width: size,
           height: size,
+          color: 'inherit',
           backgroundColor: 'currentColor',
           maskImage: `url(${src})`,
           maskSize: 'contain',
@@ -58,6 +59,10 @@ function PngIcon(src: string) {
           WebkitMaskSize: 'contain',
           WebkitMaskRepeat: 'no-repeat',
           WebkitMaskPosition: 'center',
+          // Force GPU compositing layer to prevent backdrop-filter on parent
+          // nav from breaking mask-image rendering on mobile Safari/WebKit
+          transform: 'translateZ(0)',
+          WebkitTransform: 'translateZ(0)',
         }}
       />
     );

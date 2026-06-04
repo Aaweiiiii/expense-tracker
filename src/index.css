@@ -161,6 +161,13 @@ body {
   display: none;
 }
 
+/* Force GPU compositing layer for inline mask-image elements.
+   Prevents masking bugs on mobile Safari when inside filter/backdrop-filter parents. */
+.gpu-mask {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+}
+
 /* Hide number input spinners */
 .no-spinner::-webkit-inner-spin-button,
 .no-spinner::-webkit-outer-spin-button {
@@ -241,6 +248,17 @@ body {
 
 .animate-fade-in-up-fast {
   animation: fadeInUp 0.18s ease-out both;
+}
+
+/* Bar chart growth animations */
+@keyframes growUp {
+  from { transform: scaleY(0); }
+  to   { transform: scaleY(1); }
+}
+
+@keyframes growRight {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
 }
 
 /* AI loading spinner */

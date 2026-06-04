@@ -470,7 +470,7 @@ export function Stats() {
             <div className="glass-card rounded-2xl p-5 animate-fade-in-up">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-sm font-medium text-[var(--color-text-muted)] flex items-center gap-1.5">
-                  <span className="inline-block shrink-0" style={{ width: 16, height: 16, backgroundColor: 'currentColor', maskImage: `url(${detailIcon})`, maskSize: 'contain', maskRepeat: 'no-repeat', maskPosition: 'center', WebkitMaskImage: `url(${detailIcon})`, WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center' }} />
+                  <span className="inline-block shrink-0 gpu-mask" style={{ width: 16, height: 16, backgroundColor: 'currentColor', maskImage: `url(${detailIcon})`, maskSize: 'contain', maskRepeat: 'no-repeat', maskPosition: 'center', WebkitMaskImage: `url(${detailIcon})`, WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center' }} />
                   月度复盘</h2>
                 {aiReview && hasApiKey() && (
                   <button
@@ -481,7 +481,7 @@ export function Stats() {
                     {aiLoading ? (
                       <span className="ai-spinner shrink-0" style={{ width: 14, height: 14, borderWidth: '1.5px' }} />
                     ) : (
-                      <span className="inline-block shrink-0" style={{ width: 14, height: 14, backgroundColor: 'currentColor', maskImage: `url(${dataAnalysisIcon})`, maskSize: 'contain', maskRepeat: 'no-repeat', maskPosition: 'center', WebkitMaskImage: `url(${dataAnalysisIcon})`, WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center' }} />
+                      <span className="inline-block shrink-0 gpu-mask" style={{ width: 14, height: 14, backgroundColor: 'currentColor', maskImage: `url(${dataAnalysisIcon})`, maskSize: 'contain', maskRepeat: 'no-repeat', maskPosition: 'center', WebkitMaskImage: `url(${dataAnalysisIcon})`, WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center' }} />
                     )}
                     再次复盘
                   </button>
@@ -516,7 +516,7 @@ export function Stats() {
                   className="w-full py-3 rounded-xl text-sm font-medium transition-colors inline-flex items-center justify-center gap-1.5"
                   style={{ background: 'rgba(126, 203, 161, 0.15)', color: 'var(--macaron-mint)' }}
                 >
-                  <span className="inline-block shrink-0" style={{ width: 16, height: 16, backgroundColor: 'currentColor', maskImage: `url(${dataAnalysisIcon})`, maskSize: 'contain', maskRepeat: 'no-repeat', maskPosition: 'center', WebkitMaskImage: `url(${dataAnalysisIcon})`, WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center' }} />
+                  <span className="inline-block shrink-0 gpu-mask" style={{ width: 16, height: 16, backgroundColor: 'currentColor', maskImage: `url(${dataAnalysisIcon})`, maskSize: 'contain', maskRepeat: 'no-repeat', maskPosition: 'center', WebkitMaskImage: `url(${dataAnalysisIcon})`, WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center' }} />
                   生成本月复盘
                 </button>
               )}
