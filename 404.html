@@ -13,10 +13,39 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <link rel="manifest" href="./manifest.json" />
     <title>消费记录</title>
-    <script type="module" crossorigin src="/expense-tracker/assets/index-BkXWyTbP.js"></script>
-    <link rel="stylesheet" crossorigin href="/expense-tracker/assets/index-4i_gwsF_.css">
+    <script type="module" crossorigin src="/expense-tracker/assets/index-CKYjsrTI.js"></script>
+    <link rel="stylesheet" crossorigin href="/expense-tracker/assets/index-DfyZzuvo.css">
   </head>
   <body>
     <div id="root"></div>
+    <!-- Diagnostic: remove after debugging bottom safe-area issue -->
+    <div id="safe-diag" style="position:fixed;top:0;left:0;right:0;z-index:9999;background:rgba(0,0,0,0.85);color:#0f0;font:12px monospace;padding:6px 10px;pointer-events:none;line-height:1.6;"></div>
+    <script>
+      (function() {
+        var el = document.getElementById('safe-diag');
+        function update() {
+          var probe = document.createElement('div');
+          probe.style.cssText = 'position:fixed;bottom:0;left:0;width:0;height:0;padding-bottom:env(safe-area-inset-bottom);pointer-events:none;';
+          document.body.appendChild(probe);
+          var envPx = probe.offsetHeight;
+          document.body.removeChild(probe);
+          var vvH = window.visualViewport ? window.visualViewport.height : 'N/A';
+          var wH = window.innerHeight;
+          var sH = screen.height;
+          var dpr = devicePixelRatio;
+          var isStandalone = matchMedia('(display-mode: standalone)').matches;
+          el.innerHTML =
+            'env(safe-area-inset-bottom): <b>' + envPx + 'px</b> | ' +
+            'innerHeight: <b>' + wH + '</b> | ' +
+            'visualViewport: <b>' + vvH + '</b> | ' +
+            'screen.height: <b>' + sH + '</b> | ' +
+            'DPR: <b>' + dpr + '</b> | ' +
+            'standalone: <b>' + isStandalone + '</b>';
+        }
+        update();
+        window.addEventListener('resize', update);
+        window.visualViewport && window.visualViewport.addEventListener('resize', update);
+      })();
+    </script>
   </body>
 </html>
