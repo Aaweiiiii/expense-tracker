@@ -4,6 +4,7 @@
   "description": "个人消费记录与复盘",
   "start_url": "/expense-tracker/",
   "scope": "/expense-tracker/",
+  "display_override": ["fullscreen", "standalone"],
   "display": "standalone",
   "background_color": "#111827",
   "theme_color": "#111827",
